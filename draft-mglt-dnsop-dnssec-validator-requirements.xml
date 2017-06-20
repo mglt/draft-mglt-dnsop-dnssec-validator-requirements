@@ -6,32 +6,25 @@
 <rfc category="std" docName="draft-mglt-dnsop-dnssec-validator-requirements-05" ipr="trust200902">
   <front>
     <title abbrev="DNSSEC Validator Requirements">DNSSEC Validators Requirements</title>
-    <author surname="Migault" initials="D.M." fullname="Daniel Migault">
-      <organization>Ericsson</organization>
+
+
+<author fullname="Daniel Migault" initials="D." surname="Migault">
+<organization>Ericsson</organization>
+<address>
+   <email>daniel.migault@ericsson.com</email>
+</address>
+</author>
+
+
+    <author initials="D." surname="York" fullname="Dan York">
+<organization>Internet Society</organization>
       <address>
-        <postal>
-          <street>8400 boulevard Decarie</street>
-          <city>Montreal, QC H4P 2N2</city>
-          <country>Canada</country>
-        </postal>
-        <email>daniel.migault@ericsson.com</email>
-      </address>
-    </author>
-    <author surname="York" initials="D.Y." fullname="Dan York">
-      <organization>Internet Society</organization>
-      <address>
-        <postal/>
         <email>york@isoc.org</email>
       </address>
     </author>
-    <author surname="Lewis" initials="E.L." fullname="Edward Lewis">
-      <organization>ICANN</organization>
+    <author initials="E." surname="Lewis" fullname="Edward Lewis">
+<organization>ICANN</organization>
       <address>
-        <postal>
-          <street>801 17th Street NW Suite 401</street>
-          <city>Washington DC, 20006 US</city>
-          <country>USA</country>
-        </postal>
         <email>edward.lewis@icann.org</email>
       </address>
     </author>
@@ -39,569 +32,629 @@
     <area>INTERNET</area>
     <workgroup>DNSOP</workgroup>
     <abstract>
-      <t>DNSSEC provides data integrity and authentication for DNSSEC
-validators. However, without valid trust anchor(s) and an acceptable
-value for the current time, DNSSEC validation cannot be performed. This
-document lists the requirements to be addressed so resolvers can have
-DNSSEC validation be always-on.
-</t>
+
+<t>DNSSEC provides data integrity and authentication of DNS RRset. More
+specifically, given a RRset, a public key and a signature, a DNSSEC
+validator checks the signature. In case of mismatch the RRSet is
+considered illegitimate and is rejected.  </t>
+
+<t>Signature validation assumes a loose coordination between the public
+RRset associated to the zone, the signature, and the ability for a
+DNSSEC validator to perform the validation. In some cases these
+conditions are not met and the DNSSEC validator rejects legitimate
+response, thus prevent DNS based communication. In most cases, DNSSEC
+validator recovery requires some human intervention by a network
+administrator as well as an expertise in DNSSEC.  </t>
+
+<t>This document  details requirements for a DNSSEC validator to be
+recovered.</t>
+
     </abstract>
   </front>
   <middle>
     <section title="Requirements notation">
-      <t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL
-NOT","SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in
-this document are to be interpreted as described in <xref
-target="RFC2119"/>. </t>
+      <t>
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+"SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+document are to be interpreted as described in <xref target="RFC2119"/>.
+</t>
     </section>
     <section title="Introduction">
-      <t>
-DNSSEC <xref target="R C4033"/>, <xref target="RFC4034"/>, <xref
+
+<t>DNSSEC <xref target="RFC4033"/>, <xref target="RFC4034"/>, <xref
 target="RFC4035"/> adds data authentication and integrity checks to DNS
-<xref target="RFC1034"/>, <xref target="RFC1035"/>. For signature
-validation, DNSSEC requires a valid trust anchor such as the Key Signing
-Key (KSK)  (the Root Zone KSK for example) and an appropriated time.
-</t>
-      <t>
-A DNSSEC Validator badly configured may result in disabling DNS
-resolutions, and thus disabling communications relying on the DNS
-resolution.
-</t>
-      <t>
-On the other hand, no standard mechanisms or protocols have been
-provided to manage DNSSEC Validators. Management of DNSSEC Validators
-typically includes the ability to check the DNSSEC configuration, to
-provision the appropriated trust anchor as well as the ability to
-recover emergency situation that results in unappropriated data being
-cached.
-</t>
-      <t>
-The lack of management of DNSSEC Validator has slowed down the adoption
-of DNSSEC. In addition, when deployed, DNSSEC may in fact be deployed in
-an unsecure way to avoid disturbing communications.  Typically
-successful validation are mentioned while validation failure are
-bypassed. Although encouraging, these steps are much too small to
-achieve the ambition of DNSSEC that is securing the DNS.
-</t>
-      <t>
-This document describes scenarios where DNSSEC validation cannot be
-performed properly by the DNSSEC Validator and additional mechanisms are
+<xref target="RFC1034"/>, <xref target="RFC1035"/>. DNSSEC validators
+determine a RRset is legitimate upon validating a signature. </t>
+
+<!--
+In order to
+validate a signature, the DNSSEC validator uses a public key in
+conjunctions of the RRSet and its associated signature.  The validation
+of the signature supposes the DNSSEC validators use the appropriated
+public key, supports the signature scheme as well as an accurate time.
+The public key necessary to validate the signature is stored in the DNS
+and needs to be trusted. In most cases, trust is provided by a chain of
+trust set by DNSSEC from a valid Trust Anchor to the public key.  </t>
+-->
+
+<t>While some conditions are inherent to the DNSSEC validators'
+configuration other depends on the ability of intermediary DNS operators
+to configure appropriately their DNSSEC zone. Any misconfiguration can
+break the chain of trust and thus lead the DNSSEC validators to
+invalidate legitimate RRsets. A typical example would consists in
+publishing a erroneous data such a key, or signatures. In some cases
+- such as for erroneous ZSK -, unless a human intervention occurs, the
+  DNSSEC validator may recover after the erroneous data expires in the
+cache. However, relying on cache expiration is not acceptable for
+operational DNSSEC validators.  In other cases, - such as when bad trust
+anchors are used - DNSSEC validator may never recover unless a network
+administrator reconfigures the DNSSEC validator.</t>
+
+<t>As a result, DNSSEC validators may invalidate legitimate RRset due
+to some DNSSEC misconfiguration they are not responsible for, and
+recovering from these misconfiguration requires some manual
+interventions by the network administrator.</t>
+
+<t>On the other hand, no standard mechanisms or protocols or interfaces
+have been provided to manage DNSSEC validators. Management of DNSSEC
+validators typically includes the ability to check the DNSSEC
+configuration, to provision the appropriated trust anchor as well as the
+ability to recover emergency situation that results in unappropriated
+data being cached.</t>
+
+<t>The lack of management of DNSSEC validator has slowed down the
+adoption of DNSSEC. In addition, when deployed, DNSSEC may in fact be
+deployed in an unsecure way to avoid disturbing communications.
+Typically successful validation are mentioned while validation failure
+are bypassed. Although encouraging, these steps are much too small to
+achieve the ambition of DNSSEC that is securing the DNS.</t>
+
+<t>This document describes scenarios where DNSSEC validation cannot be
+performed properly by the DNSSEC validator and additional mechanisms are
 needed. In other words, this means that FQDN properly signed are
 rejected. From these scenarios, this document derives requirements so
-DNSSEC Validators can have DNSSEC always activated.
+DNSSEC validators can have DNSSEC always activated, while being managed.
 </t>
-      <t>
-Note that the requirements do not indicate how they are fulfilled.  More
-especially, the DNSSEC Validator may implement autonomous mechanism to
-fulfill these requirements or they may be fulfilled by a third party
-such as a network administrator.
-</t>
-      <t>
-We expect these requirements to be useful to design appropriated
-protocols for the management of DNSSEC Validator. Once under control
+
+<t>Note that the requirements do not indicate how they are fulfilled.
+More especially, the DNSSEC validator may implement autonomous mechanism
+to fulfill these requirements or they may be fulfilled by a third party
+such as a network administrator.</t>
+
+<t>These requirements are to be useful to design appropriated
+protocols for the management of DNSSEC validator. Once under control,
 risks associated to DNSSEC validation performed improperly will be
-reduced, thus encouraging activation of DNSSEC Validators.
-</t>
+reduced, thus encouraging activation of DNSSEC validators.  </t>
+
+<!--
+
+<t>This document provides requirement to address DNSSEC inconsistencies
+that prevent DNSSEC validation to be performed. It is expected that most
+of these inconsistencies result from publication of erroneous data as
+well as inconsistent key roll over procedures or emergency key roll over
+designates any rollover not performed as described in Section 4.1 of
+<xref target="RFC6781"/>, in <xref target="RFC7583"/> as well as in
+<xref target="RFC5011"/>. Such operations results in differences between
+data stored in the cache of the DNSSEC Validators and the authoritative
+servers (see section 4.2 in <xref target="RFC6781"/>) </t>
+
+<t>Emergency key roll over can be intentionally performed or result from
+an unexpected behavior in the publishing/validation chain. This is out
+of scope of this document to understand the reasons/motivations for such
+key roll over. This document assumes such situation are likely to happen
+and lists the requirement so DNSSEC validator can recover from such
+situations.</t>
+
+-->
+
     </section>
     <section title="Terminology">
-      <t>
-This document uses the following terminology: [horizontal]
-- DNSSEC Validator: :: the entity that performs DNSSEC resolution and performs signature validation.
+
+<t>
+This document uses the following terminology:
 </t>
+
+<t><list>
+    <t>DNSSEC validator: the entity that performs DNSSEC resolution and
+performs signature validation.</t>
+</list></t>
+
     </section>
-    <section anchor="sec-time" title="Time derivation and absence of Real Time Clock">
-      <t>
-With M2M communication some devices are not expecting to embed Real Time
-Clock (Raspberry Pi is one example of such devices). When these devices
-are re-plugged the initial time is set to January 1 1970. Other devices
-that have clocks that may suffer from time derivation. All these devices
-cannot rely on their time estimation to perform DNSSEC validation.
-</t>
+
+<section anchor="sec-time" title="Time derivation and absence of Real Time Clock">
+
+<t>With M2M communication some devices are not expecting to embed Real
+Time Clock (Raspberry Pi is one example of such devices). When these
+devices are re-plugged the initial time is set to January 1 1970. Other
+devices that have clocks that may suffer from time derivation. All these
+devices cannot rely on their time estimation to perform DNSSEC
+validation.  </t>
+
+<t><list style="format REQ%d:" counter="my_count">
+<t> A DNSSEC validator MUST be provided means to update the time without
+relying on DNSSEC.</t>
+</list></t>
+
+<t>Note that updating time in order to be able to perform DNSSEC
+validation may easily come with a chicken-and-egg problem when the NTP
+server is designated by its FQDN. The update mechanisms must consider
+the DNSSEC validator may not able to validate the DNSSEC queries. In
+other words, the mechanisms may have to update the time over an unsecure
+DNSSEC resolution.</t>
+
     </section>
-    <section title="Unplugged devices during Trust Anchor KSKs roll over">
-      <t>
-In this section we consider a regular Trust Anchor KSK roll over as
-described in <xref target="RFC6781"/> and <xref target="RFC5011"/>.
-Unlike regular KSKs, Trust Anchor KSK does not have to update the DS
-RRset in the parent zone. According to <xref target="RFC6781"/>, if
-TTL_K is the TTL associated to the Trust Anchor KSK and associated
-RRSIGs, the time of key roll over is around TTL_K with double signed
-KSKs, and 2 x TTL_K in the case of single singed KSK.
-</t>
-      <t>
-The Root Zone KSK is an example of Trust Anchor KSK and at the time of
-writing the KSK has a TTL of 172800 seconds which means 2 days. This
+
+<section anchor="sec-trust-anchor" title="Trust Anchor">
+
+<section title="Priming Trust Anchor">
+
+<t>This section considers a regular Trust Anchor KSK roll over as
+described in <xref target="RFC5011"/> and <xref
+target="I-D.ietf-dnsop-rfc5011-security-considerations"/>.  Trust
+Anchors are designated as a regular KSK  in the zone file, Despite
+similarities, Trust Anchors have significant difference with regular KSK
+as noted in in  section 4.1.2.1 of <xref target="RFC6781"/>. One of the
+difference is that trust of a Trust Anchor requires the DNSSEC
+validators to configured the Trust Anchor, while the trust of a KSK that
+is not a Trust Anchor relies on the DS RRset. This justify a specific
+key roll over procedure described in <xref target="RFC5011"/> and as
+such this document dedicates a specific section. </t>
+
+<t>According to <xref target="RFC6781"/>, if TTL_K is the TTL associated
+to the Trust Anchor KSK and associated RRSIGs, the time of key roll over
+is around TTL_K with double signed KSKs, and 2 x TTL_K in the case of
+single singed KSK.  </t>
+
+<t>The Root Zone KSK is an example of Trust Anchor KSK and at the time
+of writing the KSK has a TTL of 172800 seconds which means 2 days. This
 means that 2 days would be sufficient to perform a Trust Anchor KSK roll
 over. <xref target="RFC5011"/> recommends to advertise the new / old key
-for 30 days. This means that a device unplugged for two months may not
-be aware of a regular Trust Anchor KSK rollover.
-</t>
-      <t>
-A DNSSEC Validator may be properly configured by the manufacturer to
-perform DNSSEC validation. The device may for example be configured by
-the manufacturer shipped to resellers that store the device for a few
+for 30 days.  This means that a device unplugged for two months may not
+be aware of a regular Trust Anchor KSK rollover.  </t>
+
+<t>A DNSSEC validator may be properly configured by the manufacturer
+to perform DNSSEC validation. The device may for example be configured
+by the manufacturer shipped to resellers that store the device for a few
 months, years before selling the devices to the final end user.
 Similarly, an operational device may remain unplugged for a while for
 maintenance reason, or held in reserve when a crash occurs. This fall
-back is never expected to happen and may happen years after.
-</t>
-      <t>
-Suppose a KSK complete key roll-over occurs (for example at the Root
+back is never expected to happen and may happen years after.</t>
+
+<t>Suppose a KSK complete key roll-over occurs (for example at the Root
 Zone) while the device is offline. Once plugged again, the device will
-attempt to validate DNSSEC signature with the old Trust Anchor KSK.
-</t>
-      <t>
-The key point in this example is that the device is boot and does not
-rely on cached information.
-</t>
-      <t>
-We think these requirements are not restrictive to the Root Zone KSK,
-but to any KSK. In fact it is not always possible to build a trusted
-delegation between the Root Zone and any sub zone. This may happen for
-example if one of the upper zones does not handle the secure delegation
-or improperly implement it. A DS RRset may not be properly filled or its
-associated signature cannot be validated. As the chain of trust between
-a zone and the root zone may not be validated, the DNSSEC validation for
-the zone requires a Trust Anchor. Such DNS(SEC) resolutions may be
-critical for infrastructure management. A company "Example" may for
-address all its devices under the domain example.com and may not want
-disruption to happen if the .com delegation cannot be validated for any
-reason. Such companies may provision there DNSSEC Validator with the
-Trust Anchor KSK for the zone example.com in addition to the regular
-DNSSEC delegation. Similarly some some domains may present different
-views such as a "private" view and a "public view". These zones may have
-some different content, and may use a different KSK for each view.
-</t>
-      <t>
-Note that providing Trust Anchor KSKs is a crucial operation and can be
-used a vector of attack. As a result, this operation MUST be performed
-cautiously.
-</t>
-    </section>
-    <section title="Emergency Key rollover">
-      <t>
-Emergency key roll over designates any rollover not performed as
-described in Section 4.1 of <xref target="RFC6781"/> which results in
-differences between data stored in the cache of the DNSSEC Validators
-and the authoritative servers (see section 4.2 in <xref
-target="RFC6781"/>)
-</t>
-      <t>
-Emergency key roll over can be intentionally performed or result from an
-unexpected behavior in the publishing/validation chain. This is out of
-scope of this document to understand the reasons/motivations for such
-key roll over. This document assumes such situation are likely to happen
-and lists the requirement so DNSSEC Validator can recover from such
-situations.
-</t>
-      <section anchor="sec-invalid-cached-zsk" title="Invalid cached ZSK">
-        <t>
-An emergency ZSK rollover may result in a new ZSK with associated new
-RRSIG published in the authoritative zone, while DNSSEC Validator may
-still cache the old value of the ZSK. For a RRset not cached, the DNSSEC
-Validator performs a DNSSEC query to the authoritative server that
-returns the RRset signed with the new ZSK. The DNSSEC Validator
-validates the signature with the old ZSK which results in an invalid
-signature check.
-</t>
-        <t>
-Suppose the old ZSK has been corrupted and that old RRsets have been
-spoofed. Until the ZSK TTL expires, the DNSSEC Validator considers the
-spoofed RRsets as valid and the newly signed RRsets as invalid.
-</t>
-        <t>
-Note that if the DNSSEC Validator receives an indication that a ZSK is
-not valid anymore, it is expected to flush its cache entries of the old
-ZSK as well as all entries that have been validated by the old ZSK.
-This does not lead to impersonation of ZSK, at most it generates some
-additional DNSSEC resolutions and validations.
-</t>
-      </section>
-      <section title="Invalid cached RRSIG">
-        <t>
-Invalid cached RRSIG  would mean the DNSSEC Validator caches a new ZSK,
-but still has a RRset with a RRSIG signed with the old ZSK.
-</t>
-        <t>
-This situation should not happen as when a ZSK is renewed all RRsets
-validated by the old ZSK are flushed from the cache.
-</t>
-      </section>
-      <section anchor="sec-invalid-cached-ksk" title="Invalid cached KSK">
-        <t>
-Consequences of invalid KSK are similar to ZSK. None of the RRSIG can be
-validated even the one signing the ZSK. (cf. <xref
-target="sec-invalid-cached-zsk"/>)
-</t>
-      </section>
-      <section anchor="sec-invalid-ds" title="Invalid DS">
-        <t>
-The DS RRset is stored in the parent zone to build a chain of trust with
-the child zone. This DS RRset can be invalid because its RDATA (KSK) is
-not anymore used in the child zone or because the DS is badly signed and
-cannot be validated by the DNSSEC Validator.
-</t>
-        <t>
-In both cases the child zone is considered as insecure and the valid
-child zone&#8217;s KSK should become a Trust Anchor KSK.
-</t>
-      </section>
-    </section>
-    <section anchor="sec-invalid-rrsig" title="Invalid RRSIG">
-      <t>
-A zone may have been badly signed, which means that the KSK or ZSK
-cannot validate the RRSIG associated to the RRsets. This may not be due
-to a key roll over, but to an incompatibility between the keys (KSK or
-ZSK) and the signatures.
-</t>
-      <t>
-This means that the zone for a given time will be known as "known
-insecure". The DNSSEC Validator is not expected to perform signature
-validation for this zone. It is expected that this information is
-associated to a Time To Live (TTL).
-</t>
-      <t>
-Note that, this information may be used as an attack vector to
-impersonate a zone, and must be provided in a trusted way, by a trusted
-party.
-</t>
-      <t>
-If a zone has been badly signed, the administrator of the authoritative
-DNS server may resign the zone with the same keys or proceed to an
-emergency key rollover. If the signature is performed with the same
-keys, the DNSSEC Validator may notice by itself that RRSIG can be
-validated. On the other hand if a key rollover is performed, the newly
-received RRSIG will carry a new key id. Upon receiving a new key id in
-the RRSIG, the DNSSEC Validator is expected to retrieve the new ZSK/KSK.
-If the RRSIG can be validated, the DNSSEC Validator is expected to
-remove the "known insecure" flag.
-</t>
-      <t>
-However, if the KSK/ZSK are rolled over and RRSIG cannot be validated,
-it remains hard for the DNSSEC Validator to determine whether the RRSIG
-cannot be validated or that RRSIG are invalid. As a result:
-</t>
-    </section>
-    <section anchor="sec-private" title="Private KSK/ZSK">
-      <t>
-DNSSEC may also be used in some private environment. Corporate networks
-and home networks, for example, may want to take advantage of DNSSEC for
-a local scope network. Typically, a corporate network may use a local
-scope KSK / ZSK to validate DNS RRsets provided by authoritative DNSSEC
-server in the corporate network. This use case is also known as the
-"split-view" use case. These RRsets within the corporate network may
+attempt to validate DNSSEC signature with the old Trust Anchor KSK. In
+order to prevent such situations:</t>
+
+<t><list style="format REQ%d:" counter="my_count">
+
+<t>A DNSSEC validator MUST check the validity of its Trust Anchors. When a
+Trust Anchor cannot be verified, the DNSSEC validator MUST send a
+warning and SHOULD NOT start validating traffic without manual
+validation.</t> 
+
+<t>A DNSSEC validator SHOULD be able to retrieve a Trust Anchor with
+bootstrapping mechanism. Such mechanism' security MUST NOT be based on
+DNSSEC, but could instead include downloading a XML file
+from a trusted URL, or a PKIX certificate.</t>
+        
+</list></t>
+
+<t>Although some bootstrapping mechanisms to securely retrieve publish
+<xref target="RFC7958"/> and retrieve <xref target="UNBOUND-ANCHOR"/>
+the Root Zone Trust Anchor have been defined, it is believed these
+mechanisms should be extended to other KSKs or Trust Anchors.  In fact
+it is not always possible to build a trusted delegation between the Root
+Zone and any sub zone. This may happen for example if one of the upper
+zones does not handle the secure delegation or improperly implement it.
+A DS RRset may not be properly filled or its associated signature cannot
+be validated. As the chain of trust between a zone and the root zone may
+not be validated, the DNSSEC validation for the zone requires a Trust
+Anchor. Such DNS(SEC) resolutions may be critical for infrastructure
+management. A company "Example" may for address all its devices under
+the domain example.com and may not want disruption to happen if the .com
+delegation cannot be validated for any reason. Such companies may
+provision there DNSSEC validator with the Trust Anchor KSK for the zone
+example.com in addition to the regular DNSSEC delegation. Similarly some
+some domains may present different views such as a "private" view and a
+"public view". These zones may have some different content, and may use
+a different KSK for each view.</t>
+
+</section>
+
+<section title="Trust Anchor Data Store">
+
+<t>When DNSSEC validator are running and a Trust Anchor KSK roll over is
+ongoing, a network administrator or any trust party may be willing to
+check whether the new published keys are being stored in a Trust Anchor
+Store with an appropriated status. Such inspection is likely to avoid
+that an non successful Trust Anchor roll over be detected before traffic
+is being rejected. When a new Trust Anchor has not been considered by
+the DNSSEC validator, a trusted party may be able to provision the
+DNSSEC validator with the new Trust Anchor, and eventually may remove the
+revoked Trust Anchor.</t>  
+
+<t>While Trust Anchor configured with a KSK that has been removed
+results in the DNSSEC validator rejecting multiple legitimate responses,
+the consequences associated to accepting a rogue Trust Anchor as a
+legitimate Trust Anchor are even worst. Such attacks would result in an
+attacker taking control of the entire naming space behind the Trust
+Anchor. In the case of the Root Zone KSK, for example, almost all name
+space would be under the control of the attacker. In addition, to the
+name space, once the rogue Trust Anchor is configured, there is little
+hope the DNSSEC validator be re-configured with the legitimate Trust
+Anchor without manual intervention. As a result, it is crucial to
+cautiously handle operations related to the Trust Anchor provisioning.
+Means must be provided so network administrator can clearly diagnose the
+reason a Trust Anchor is not valid to avoid accepting a rogue Trust
+Anchor inadvertently.</t>
+
+
+<t>DNSSEC may also be used in some private environment. Corporate
+networks and home networks, for example, may want to take advantage of
+DNSSEC for a local scope network. Typically, a corporate network may use
+a local scope KSK / ZSK to validate DNS RRsets provided by authoritative
+DNSSEC server in the corporate network. This use case is also known as
+the "split-view" use case. These RRsets within the corporate network may
 differ from those hosted on the public DNS infrastructure. Note that
 using different KSK/ZSK for a given zone may expose a zone to signature
 invalidation. This is especially the case for DNSSEC validators that are
 expected to flip-flop between local and public scope. How validators
 have to handle the various provisioned KSK/ZSKs is out of scope of the
-document.
+document.  </t>
+      
+<t> Homenet work may use DNSSEC with TLDs or associated domain names
+that are of local scope and not even registered in the public DNS
+infrastructure.  This requires the ability to manage the Trust Anchor DB
+as described in <xref target="sec-trust-anchor"/>.  </t>
+
+<t>The necessity to interact with the Trust Anchors lead to the
+following requirements:</t>
+
+<t><list style="format REQ%d:" counter="my_count">
+
+<t>A DNSSEC validator MUST store its Trust Anchors in a dedicated Trust
+Anchor Data Base.  Such database MUST store informations associated to
+each Trust Anchor status as well as the time the status has been noticed
+by the DNSSEC validator. Such database MUST be resilient to DNSSEC
+validator reboot.</t>
+
+<t>Trust Anchor states SHOULD at least consider those
+described in <xref target="RFC5011"/> (Start, AddPend, Valid, Missing,
+Revoked, Removed). Additional states SHOULD also be able to indicate
+additional motivations for revoking the Trust Anchor such as a Trust
+Anchor known to be corrupted, a Trust anchor miss published, or part of
+a regular roll over procedure.</t>    
+
+<t>A DNSSEC validator MUST provide access to the Trust Anchor data base
+to authorized user only. Access control is expected to be based on a
+least privileged principles.</t>  
+
+<t>A trusted party MUST be able to add, remove a Trust Anchor in the
+Trust Anchor Database.</t>
+
+</list></t>
+
+</section>
+
+<section title="Interactions with the cached RRsets">
+
+<t>In addition when a Trust Anchor is revoked, the DNSSEC
+validator may behave differently if the revocation is motivated by a
+regular roll over operation or instead by revoking a Trust Anchor that
+is known as being corrupted. In the case the roll over procedure, is
+motivated by revoking a Trust Anchor  that is known to be corrupted, the
+DNSSEC validator may be willing to flush all RRsets that depends on the
+Trust Anchor. </t>     
+
+<t><list style="format REQ%d:" counter="my_count">
+
+<t>A DNSSEC validator MUST be able to flush the cached RRsets that rely
+on a Trust Anchor.</t>
+
+</list></t>
+
+</section>
+      
+</section>
+
+
+<section anchor="sec-ksk-zsk" title="ZSK / KSK">
+
+
+<section title="KSK/ZSK Data Store">
+
+<t>A number of reasons may result in inconsistencies between the RRsets
+stored in the cache and those published by the authoritative server.</t>
+
+
+<t>An emergency KSK / ZSK rollover may result in a new KSK / ZSK with
+associated new RRSIG published in the authoritative zone, while DNSSEC
+validator may still cache the old value of the ZSK / KSK. For a RRset
+not cached, the DNSSEC validator performs a DNSSEC query to the
+authoritative server that returns the RRset signed with the new KSK /
+ZSK. The DNSSEC validator may not be able to retrieve the new KSK / ZSK
+while being unable to validate the signature with the old KSK / ZSK.
+This either result in a bogus resolution or in an invalid signature
+check.</t>
+
+<t>[I AM NOT SURE THE ABOVE TEXT IS CORRECT AS THE RRSIG CARRIES THE KEY
+ID, SO THE DNSSEC VALIDATOR SHOULD BE ABLE TO DETECT IT IS USING THE
+WRONG KEY. WOULDN'T IT IN THAT CASE QUERY THE DNSKEY ? ]</t>
+
+<t>Similarly, a KSK / ZSK roll over may be performed normally, that is
+as described in <xref target="RFC6781"/> and <xref target="RFC7583"/>.
+While the KSK / ZSK is performed, there is no obligation to flush the
+RRsets in the cache that have been associated with the old key. In fact,
+these RRset may still be considered as trusted and be removed from the
+cache as their TTL timeout. With very long TTL, these RRset may remain
+in the cache while the ZSK / KSK with a shorter TTL is no longer
+published nor in the cache. </t>
+
+<t>KSK and ZSK are associated with configuration parameters, and as such
+are expected to be stored only in the cache. As a result, flushing their
+value from the cache could constitute a way forward to refresh them. On
+the other hand, their respective function is also to prevent
+illegitimate RRsets to be validated and so more understanding is need
+before taking any action associated to the KSK or ZSK. More
+specifically, the network administrator SHOULD be provided the
+appropriated information required to distinguish a misconfiguration from
+an attack.</t>  
+
+<t>The following requirements are thus considered for the KSK / ZSK.</t>
+
+<t><list style="format REQ%d:" counter="my_count">
+
+<t>A DNSSEC validator MUST store its KSK/ZSK in a dedicated KSK/ZSK
+Data Base. Such database MUST store informations associated to
+each KSK/ZSK status as well as the time the status has been noticed
+by the DNSSEC validator. Such database MUST NOT be resilient to DNSSEC
+validator reboot.</t>
+
+<t>KSK/ZSK status SHOULD be monitored continuously and associated
+with their respective state as well as verified time. These states and
+MUST NOT be resilient to reboot.</t>
+
+<t>KSK/ZSK states SHOULD at least consider those described in section
+3.1 of <xref target="RFC7583"/> (Generated, Published, Ready, Active,
+Retired, Dead, Removed, Revoked ). Additional states SHOULD also be able
+to indicate additional motivations for revoking the KSK/ZSK such as a
+KSK/ZSK known to be corrupted, a KSK/ZSK miss published, or part of a
+regular roll over procedure.</t>    
+
+<t>A DNSSEC validator MUST provide access to the KSK/ZSK data base
+to authorized user only. Access control is expected to be based on a
+least privileged principles.</t>  
+
+<t>A trusted party MUST be able to add, remove a Trust Anchor in the
+KSK/ZSK Database.</t>
+            
+</list></t>
+        
+</section>
+
+<section title="KSK/ZSK Data Store and Trust Anchor Data Store">
+
+<t>A zone may have been badly signed, which means that the KSK or ZSK
+cannot validate the RRSIG associated to the RRsets. This may not be due
+to a key roll over, but to an incompatibility between the keys (KSK or
+ZSK) and the signatures.  </t>
+
+<t>When such situation occurs, there is only a choice between not
+validating the RRsets or invalidating their signature. This is a policy
+design that needs to be taken by the network administrator. In other
+ways, flushing the RRset are not expected to address this issue. Such
+KSK/ZSK are known as Negative Trust Anchors <xref target="RFC7646"/>.
 </t>
-      <t>
-Homenet work may use DNSSEC with TLDs or associated domain names that
-are of local scope and not even registered in the public DNS
-infrastructure.
+          
+      
+<t>With Negative Trust Anchor, the zone for a given time will be known
+as "known insecure". The DNSSEC Validator is not expected to perform
+signature validation for this zone. It is expected that this information
+is associated to a Time To Live (TTL).  </t>
+      
+<t>Note that, this information may be used as an attack vector to
+impersonate a zone, and must be provided in a trusted way, by a trusted
+party.  </t>
+      
+<t>If a zone has been badly signed, the administrator of the
+authoritative DNS server may resign the zone with the same keys or
+proceed to an emergency key rollover. If the signature is performed with
+the same keys, the DNSSEC Validator may notice by itself that RRSIG can
+be validated. On the other hand if a key rollover is performed, the
+newly received RRSIG will carry a new key id. Upon receiving a new key
+id in the RRSIG, the DNSSEC Validator is expected to retrieve the new
+ZSK/KSK.  If the RRSIG can be validated, the DNSSEC Validator is
+expected to remove the "known insecure" flag.  </t>
+      
+<t> However, if the KSK/ZSK are rolled over and RRSIG cannot be
+validated, it remains hard for the DNSSEC Validator to determine whether
+the RRSIG cannot be validated or that RRSIG are invalid. As a result:
 </t>
-    </section>
-    <section title="IANA Considerations">
-      <t>
-There are no IANA consideration for this document.
-</t>
-    </section>
-    <section anchor="sec-considerations" title="Security Considerations">
-      <t>
-The requirements listed in this document aim at providing the DNSSEC
-Validator appropriated information so DNSSEC validation can be
+      
+<t><list style="format REQ%d:" counter="my_count">
+
+<t>A trusted party MUST be able to indicate a DNSSEC validator that a
+KSK or a ZSK as Negative Trust Anchor. Such Trust Anchors MUST NOT be
+used for RRSIG validation and MUST be moved to the Trust Anchor
+Database, so the information become resilient to reboot.</t>
+
+<t> A trusted party MUST be able to indicate a DNSSEC validator  that a
+KSK/ZSK is known "back to secure".</t>
+
+</list></t>
+    
+      
+</section>
+
+<section title="Interactions with cached RRsets">
+
+<t>In order to refresh a KSK/ZSK, a trusted third party may simply flush
+the corresponding KSK/ZSK from the cache.</t>
+
+<t>In order to avoid inconsistency between KSK/ZSK and cached RRsets, a
+trusted third party may willing to remove all cached RRsets that have
+been validated by the KSK/ZSK upon some specific states (revoked, or
+Removed for example), of after some time after the state is noticed. In
+this later case, only the RRset whose TTL has not expired yet would be
+flushed. </t>
+
+<t>Finally, when a KSK/ZSK is known to be corrupted, the DNSSEC
+validator may removed all cached RRsets associated to the KSK/ZSK.</t>
+
+<t>As a result, the following requirements are expected: </t>
+
+<t><list style="format REQ%d:" counter="my_count">
+
+<t>A DNSSEC validator MUST be able to flush the cached KSK/ZSK.</t>
+
+<t>A DNSSEC validator MUST be able to flush the cached RRsets associated
+to a KSK/ZSK.</t>
+
+</list></t>
+ 
+
+</section>
+
+</section>
+
+      
+<section anchor="sec-invalid-ds" title="DS">
+        
+<t>The DS RRset is stored in the parent zone to build a chain of trust
+with the child zone. This DS RRset can be invalid because its RDATA
+(KSK) is not anymore used in the child zone or because the DS is badly
+signed and cannot be validated by the DNSSEC Validator.</t>
+        
+<t>In both cases the child zone is considered as bogus and the valid
+child zone's KSK should become a Trust Anchor KSK. This
+requirements is fulfilled by the requirement to add a Trust Anchor in
+<xref target="sec-trust-anchor"/>.  </t>
+
+      
+</section>
+
+<section title="Cryptography Deprecation">
+
+<t>As mentioned in <xref target="I-D.ietf-ipsecme-rfc4307bis"/> and
+<xref target="I-D.ietf-ipsecme-rfc7321bis"/> cryptography used one day is
+expected over the time to be replaced by new and more robust
+cryptographic mechanisms. In the case of DNSSEC signature protocols are
+likely to be updated over time. In order to anticipate the sunset of one
+of the signature scheme, a DNSSEC validator may willing to estimate the
+impact of deprecating one signature scheme.</t>
+
+<t>Currently  <xref target="RFC6975"/> provides the ability for a DNSSEC
+validator to announce an authoritative server the supported signature
+schemes. However, a DNSSEC validator is not able to determine other than
+by trying whether a signature scheme is supported by the authoritative
+server.</t>
+
+<t>In order for a DNSSEC validator to safely deprecate one signature
+scheme the following requirement should be fulfilled.</t>  
+
+<t><list style="format REQ%d:" counter="my_count">
+
+<t>A DNSSEC validator SHOULD be able to request the signature
+scheme  supported by an authoritative server.</t>
+
+</list></t>
+
+</section>
+
+<section title="IANA Considerations">
+      
+<t> There are no IANA consideration for this document.  </t>
+    
+</section>
+    
+
+<section anchor="sec-considerations" title="Security Considerations">
+      
+<t> The requirements listed in this document aim at providing the DNSSEC
+validator appropriated information so DNSSEC validation can be
 performed. On the other hand, providing inappropriate information can
-lead to misconfiguring the DNSSEC Validator, and thus disrupting the
+lead to misconfiguring the DNSSEC validator, and thus disrupting the
 DNSSEC resolution service. As a result, enabling the setting of
 configuration parameters by a third party may open a wide surface of
-attacks.
-</t>
-      <t>
-As an appropriate time value is necessary to perform signature check
+attacks.  </t>
+      
+<t> As an appropriate time value is necessary to perform signature check
 (cf. <xref target="sec-time"/>), an attacker may provide rogue time
-value to prevent the DNSSEC Validator to check signatures.
-</t>
-      <t>
-An attacker may also affect the resolution service by regularly asking
-the DNSSEC Validator to flush the KSK/ZSK from its cache (cf.  <xref
-target="sec-invalid-cached-zsk"/><xref
-target="sec-invalid-cached-ksk"/>). All associated data will also be
-flushed. This generates additional DNSSEC resolution and additional
+value to prevent the DNSSEC validator to check signatures.  </t>
+      
+<t> An attacker may also affect the resolution service by regularly
+asking the DNSSEC Validator to flush the KSK/ZSK from its cache (cf.
+<xref target="sec-ksk-zsk"/>). All associated data will also
+be flushed. This generates additional DNSSEC resolution and additional
 validations, as RRSet that were cached require a DNSSEC resolution over
 the Internet. This affects the resolution service by slowing down
-responses, and increases the load on the DNSSEC Validator.
-</t>
-      <t>
-An attacker may ask the DNSSEC Validator to consider a rogue KSK/ZSK (
-cf. <xref target="sec-invalid-ds"/>, <xref target="sec-private"/>), thus
-hijacking the DNS zone. Similarly, (cf. <xref
-target="sec-invalid-rrsig"/>) an attacker may inform the DNSSEC
-Validator not to trust a given KSK in order to prevent DNSSEC validation
-to be performed.
-</t>
-      <t>
-An attacker (cf. <xref target="sec-invalid-rrsig"/>)  can advertise a
-"known insecure" KSK or ZSK is "back to secure" to prevent signature
-check to be performed correctly.
-</t>
-      <t>
-As a result, information considered by the DNSSEC Validator should be
-from a trusted party. This trust party should have been authenticated,
-and the channel used to exchange the information should also be
-protected and authenticated.
-</t>
-    </section>
-    <section title="Acknowledgment">
-      <t>
-The need to address DNSSEC issues on the resolver side started in the
+responses, and increases the load on the DNSSEC validator.  </t>
+      
+<t> An attacker may ask the DNSSEC validator to consider a rogue KSK/ZSK
+( cf. Invalid DS in <xref target="sec-invalid-ds"/> or  Private KSK in <xref target="sec-trust-anchor"/>),
+thus hijacking the DNS zone.  Similarly, (cf. <xref
+target="sec-ksk-zsk"/>) an attacker may inform the DNSSEC
+validator not to trust a given KSK in order to prevent DNSSEC validation
+to be performed.  </t>
+      
+<t> An attacker (cf. <xref target="sec-ksk-zsk"/>)  can advertise
+a "known insecure" KSK or ZSK is "back to secure" to prevent signature
+check to be performed correctly.  </t>
+      
+<t> As a result, information considered by the DNSSEC validator should
+be from a trusted party. This trust party should have been
+authenticated, and the channel used to exchange the information should
+also be protected and authenticated.  </t>
+    
+</section>
+    
+
+<section title="Acknowledgment">
+      
+<t>The need to address DNSSEC issues on the resolver side started in the
 Home Networks mailing list and during the IETF87 in Berlin. Among
 others, people involved in the discussion were Ted Lemon, Ralph Weber,
 Normen Kowalewski, and Mikael Abrahamsson. People involved in the email
 discussion initiated by Jim Gettys were, with among others, Paul
 Wouters, Joe Abley and Michael Richardson.
 </t>
-      <t>
-The current document has been initiated after a discussion with Paul
-Wouter and Evan Hunt.
-</t>
-    </section>
+      
+<t> The current document has been initiated after a discussion with Paul
+Wouter and Evan Hunt.</t>
+    
+</section>
   </middle>
   <back>
     <references title="Normative References">
-      <reference anchor="RFC1034" target="http://www.rfc-editor.org/info/rfc1034">
-        <front>
-          <title>Domain names - concepts and facilities</title>
-          <author initials="P.V." surname="Mockapetris" fullname="P.V. Mockapetris">
-            <organization/>
-          </author>
-          <date year="1987" month="November"/>
-          <abstract>
-            <t>
-This RFC is the revised basic definition of The Domain Name System.  It obsoletes RFC-882.  This memo describes the domain style names and their used for host address look up and electronic mail forwarding.  It discusses the clients and servers in the domain name system and the protocol used between them.
-</t>
-          </abstract>
-        </front>
-        <seriesInfo name="STD" value="13"/>
-        <seriesInfo name="RFC" value="1034"/>
-        <seriesInfo name="DOI" value="10.17487/RFC1034"/>
-        <format type="TXT" target="http://www.rfc-editor.org/info/rfc1034"/>
-      </reference>
-      <reference anchor="RFC1035" target="http://www.rfc-editor.org/info/rfc1035">
-        <front>
-          <title>Domain names - implementation and specification</title>
-          <author initials="P.V." surname="Mockapetris" fullname="P.V. Mockapetris">
-            <organization/>
-          </author>
-          <date year="1987" month="November"/>
-          <abstract>
-            <t>
-This RFC is the revised specification of the protocol and format used in the implementation of the Domain Name System.  It obsoletes RFC-883. This memo documents the details of the domain name client - server communication.
-</t>
-          </abstract>
-        </front>
-        <seriesInfo name="STD" value="13"/>
-        <seriesInfo name="RFC" value="1035"/>
-        <seriesInfo name="DOI" value="10.17487/RFC1035"/>
-        <format type="TXT" target="http://www.rfc-editor.org/info/rfc1035"/>
-      </reference>
-      <reference anchor="RFC2119" target="http://www.rfc-editor.org/info/rfc2119">
-        <front>
-          <title>Key words for use in RFCs to Indicate Requirement Levels</title>
-          <author initials="S." surname="Bradner" fullname="S. Bradner">
-            <organization/>
-          </author>
-          <date year="1997" month="March"/>
-          <abstract>
-            <t>
-In many standards track documents several words are used to signify the requirements in the specification.  These words are often capitalized. This document defines these words as they should be interpreted in IETF documents.  This document specifies an Internet Best Current Practices for the Internet Community, and requests discussion and suggestions for improvements.
-</t>
-          </abstract>
-        </front>
-        <seriesInfo name="BCP" value="14"/>
-        <seriesInfo name="RFC" value="2119"/>
-        <seriesInfo name="DOI" value="10.17487/RFC2119"/>
-        <format type="TXT" target="http://www.rfc-editor.org/info/rfc2119"/>
-      </reference>
-      <reference anchor="RFC4033" target="http://www.rfc-editor.org/info/rfc4033">
-        <front>
-          <title>DNS Security Introduction and Requirements</title>
-          <author initials="R." surname="Arends" fullname="R. Arends">
-            <organization/>
-          </author>
-          <author initials="R." surname="Austein" fullname="R. Austein">
-            <organization/>
-          </author>
-          <author initials="M." surname="Larson" fullname="M. Larson">
-            <organization/>
-          </author>
-          <author initials="D." surname="Massey" fullname="D. Massey">
-            <organization/>
-          </author>
-          <author initials="S." surname="Rose" fullname="S. Rose">
-            <organization/>
-          </author>
-          <date year="2005" month="March"/>
-          <abstract>
-            <t>
-The Domain Name System Security Extensions (DNSSEC) add data origin authentication and data integrity to the Domain Name System.  This document introduces these extensions and describes their capabilities and limitations.  This document also discusses the services that the DNS security extensions do and do not provide.  Last, this document describes the interrelationships between the documents that collectively describe DNSSEC.  [STANDARDS-TRACK]
-</t>
-          </abstract>
-        </front>
-        <seriesInfo name="RFC" value="4033"/>
-        <seriesInfo name="DOI" value="10.17487/RFC4033"/>
-        <format type="TXT" target="http://www.rfc-editor.org/info/rfc4033"/>
-      </reference>
-      <reference anchor="RFC4034" target="http://www.rfc-editor.org/info/rfc4034">
-        <front>
-          <title>Resource Records for the DNS Security Extensions</title>
-          <author initials="R." surname="Arends" fullname="R. Arends">
-            <organization/>
-          </author>
-          <author initials="R." surname="Austein" fullname="R. Austein">
-            <organization/>
-          </author>
-          <author initials="M." surname="Larson" fullname="M. Larson">
-            <organization/>
-          </author>
-          <author initials="D." surname="Massey" fullname="D. Massey">
-            <organization/>
-          </author>
-          <author initials="S." surname="Rose" fullname="S. Rose">
-            <organization/>
-          </author>
-          <date year="2005" month="March"/>
-          <abstract>
-            <t>
-This document is part of a family of documents that describe the DNS Security Extensions (DNSSEC).  The DNS Security Extensions are a collection of resource records and protocol modifications that provide source authentication for the DNS.  This document defines the public key (DNSKEY), delegation signer (DS), resource record digital signature (RRSIG), and authenticated denial of existence (NSEC) resource records.  The purpose and format of each resource record is described in detail, and an example of each resource record is given.
-</t>
-            <t>
-This document obsoletes RFC 2535 and incorporates changes from all updates to RFC 2535.  [STANDARDS-TRACK]
-</t>
-          </abstract>
-        </front>
-        <seriesInfo name="RFC" value="4034"/>
-        <seriesInfo name="DOI" value="10.17487/RFC4034"/>
-        <format type="TXT" target="http://www.rfc-editor.org/info/rfc4034"/>
-      </reference>
-      <reference anchor="RFC4035" target="http://www.rfc-editor.org/info/rfc4035">
-        <front>
-          <title>Protocol Modifications for the DNS Security Extensions</title>
-          <author initials="R." surname="Arends" fullname="R. Arends">
-            <organization/>
-          </author>
-          <author initials="R." surname="Austein" fullname="R. Austein">
-            <organization/>
-          </author>
-          <author initials="M." surname="Larson" fullname="M. Larson">
-            <organization/>
-          </author>
-          <author initials="D." surname="Massey" fullname="D. Massey">
-            <organization/>
-          </author>
-          <author initials="S." surname="Rose" fullname="S. Rose">
-            <organization/>
-          </author>
-          <date year="2005" month="March"/>
-          <abstract>
-            <t>
-This document is part of a family of documents that describe the DNS Security Extensions (DNSSEC).  The DNS Security Extensions are a collection of new resource records and protocol modifications that add data origin authentication and data integrity to the DNS.  This document describes the DNSSEC protocol modifications.  This document defines the concept of a signed zone, along with the requirements for serving and resolving by using DNSSEC.  These techniques allow a security-aware resolver to authenticate both DNS resource records and authoritative DNS error indications.
-</t>
-            <t>
-This document obsoletes RFC 2535 and incorporates changes from all updates to RFC 2535.  [STANDARDS-TRACK]
-</t>
-          </abstract>
-        </front>
-        <seriesInfo name="RFC" value="4035"/>
-        <seriesInfo name="DOI" value="10.17487/RFC4035"/>
-        <format type="TXT" target="http://www.rfc-editor.org/info/rfc4035"/>
-      </reference>
-      <reference anchor="RFC5011" target="http://www.rfc-editor.org/info/rfc5011">
-        <front>
-          <title>Automated Updates of DNS Security (DNSSEC) Trust Anchors</title>
-          <author initials="M." surname="StJohns" fullname="M. StJohns">
-            <organization/>
-          </author>
-          <date year="2007" month="September"/>
-          <abstract>
-            <t>
-This document describes a means for automated, authenticated, and authorized updating of DNSSEC "trust anchors".  The method provides protection against N-1 key compromises of N keys in the trust point key set.  Based on the trust established by the presence of a current anchor, other anchors may be added at the same place in the hierarchy, and, ultimately, supplant the existing anchor(s).
-</t>
-            <t>
-This mechanism will require changes to resolver management behavior (but not resolver resolution behavior), and the addition of a single flag bit to the DNSKEY record.  [STANDARDS-TRACK]
-</t>
-          </abstract>
-        </front>
-        <seriesInfo name="STD" value="74"/>
-        <seriesInfo name="RFC" value="5011"/>
-        <seriesInfo name="DOI" value="10.17487/RFC5011"/>
-        <format type="TXT" target="http://www.rfc-editor.org/info/rfc5011"/>
-      </reference>
+
+<?rfc include="reference.RFC.1034.xml"?>
+<?rfc include="reference.RFC.1035.xml"?>
+<?rfc include="reference.RFC.2119.xml"?>
+<?rfc include="reference.RFC.4033.xml"?>
+<?rfc include="reference.RFC.4034.xml"?>
+<?rfc include="reference.RFC.4035.xml"?>
+<?rfc include="reference.RFC.5011.xml"?>
+<?rfc include="reference.RFC.6975.xml"?>
+
     </references>
+
     <references title="Informational References">
-      <reference anchor="RFC6781" target="http://www.rfc-editor.org/info/rfc6781">
-        <front>
-          <title>DNSSEC Operational Practices, Version 2</title>
-          <author initials="O." surname="Kolkman" fullname="O. Kolkman">
-            <organization/>
-          </author>
-          <author initials="W." surname="Mekking" fullname="W. Mekking">
-            <organization/>
-          </author>
-          <author initials="R." surname="Gieben" fullname="R. Gieben">
-            <organization/>
-          </author>
-          <date year="2012" month="December"/>
-          <abstract>
-            <t>
-This document describes a set of practices for operating the DNS with security extensions (DNSSEC).  The target audience is zone administrators deploying DNSSEC.
-</t>
-            <t>
-The document discusses operational aspects of using keys and signatures in the DNS.  It discusses issues of key generation, key storage, signature generation, key rollover, and related policies.
-</t>
-            <t>
-This document obsoletes RFC 4641, as it covers more operational ground and gives more up-to-date requirements with respect to key sizes and the DNSSEC operations.
-</t>
-          </abstract>
-        </front>
-        <seriesInfo name="RFC" value="6781"/>
-        <seriesInfo name="DOI" value="10.17487/RFC6781"/>
-        <format type="TXT" target="http://www.rfc-editor.org/info/rfc6781"/>
-      </reference>
-      <reference anchor="I-D.livingood-negative-trust-anchors">
-        <front>
-          <title>Definition and Use of DNSSEC Negative Trust Anchors</title>
-          <author initials="J" surname="Livingood" fullname="J Livingood">
-            <organization/>
-          </author>
-          <author initials="C" surname="Griffiths" fullname="C Griffiths">
-            <organization/>
-          </author>
-          <date year="2014" month="September"/>
-          <abstract>
-            <t>
-DNS Security Extensions (DNSSEC) is now entering widespread deployment.  However, domain signing tools and processes are not yet as mature and reliable as is the case for non-DNSSEC-related domain administration tools and processes.  One potential technique to mitigate this is to use a Negative Trust Anchor, which is defined in this document.  This document discusses Trust Anchors for DNSSEC and defines a Negative Trust Anchor, which is potentially useful during the transition to ubiquitous DNSSEC deployment.  These are configured locally on a particular instance of a validating DNS recursive resolver and can shield end users of such a resolver from the DNSSEC- related authoritative name server operational errors that appear to be somewhat typical during the transition to ubiquitous DNSSEC deployment.  Negative Trust Anchors are intended to be temporary, and should not be distributed by IANA or any other organization outside of the administrative boundary of the organization locally implementing a Negative Trust Anchor.  Finally, Negative Trust Anchors pertain only to DNSSEC and not to Public Key Infrastructures (PKI) such ad X.509.
-</t>
-          </abstract>
-        </front>
-        <seriesInfo name="Internet-Draft" value="draft-livingood-negative-trust-anchors-07"/>
-        <format type="TXT" target="http://www.ietf.org/internet-drafts/draft-livingood-negative-trust-anchors-07.txt"/>
-      </reference>
+
+<reference anchor="UNBOUND-ANCHOR" target="https://www.unbound.net/documentation/doxygen/unbound-anchor_8c.html#details">
+  <front>
+    <title>unbound-anchor.c File Reference</title>
+    <author/>
+    <date/>
+  </front>
+</reference>
+
+<?rfc include="reference.RFC.6781.xml"?>
+<?rfc include="reference.RFC.7958.xml"?>
+<?rfc include="reference.RFC.7583.xml"?>
+<?rfc include="reference.RFC.7646.xml"?>
+<?rfc include="reference.I-D.ietf-dnsop-rfc5011-security-considerations.xml"?>
+<?rfc include="reference.I-D.ietf-ipsecme-rfc4307bis.xml"?>
+<?rfc include="reference.I-D.ietf-ipsecme-rfc7321bis.xml"?>
     </references>
-    <section title="Document Change Log">
-      <t>
-[RFC Editor: This section is to be removed before publication]
-</t>
-      <t>
--02: Clarification for private ZSK/KSK.
-</t>
-      <t>
--01: minor editings.
-</t>
-      <t>
--00: First version published.
-</t>
-    </section>
   </back>
 </rfc>
