@@ -28,7 +28,7 @@
         <email>edward.lewis@icann.org</email>
       </address>
     </author>
-    <date day="13" month="April" year="2017"/>
+    <date />
     <area>INTERNET</area>
     <workgroup>DNSOP</workgroup>
     <abstract>
@@ -79,7 +79,9 @@ performs signature validation.</t>
 
 <section anchor="sec-time" title="Time derivation and absence of Real Time Clock">
 
+<!--
 <t>Editor-to-editor note: this seems like a solution, not a statement of or explanation of the requirement. Nevertheless, the requirement embedded here needs to be retained.</t>
+-->
 
 <t>With M2M communication some devices are not expecting to embed Real
 Time Clock (Raspberry Pi is one example of such devices). When these
@@ -105,8 +107,8 @@ DNSSEC resolution.</t>
 
 <section anchor="sec-trust-anchor" title="Trust Anchor Datastore">
 
-<t>A validator needs to have trust anchors or it will never be able to construct a chain of trust.  Trust anchors are defined by DNSSEC to be keys that are inherenltly trusted, configured by authorized parties, in the validator.  The configuration can be via an automated process, such as Automated Updates of DNSSEC Trust Anchors [RFC 5011 as reference], or via manual process.</t>
-<t>An implementation of a validator needs to allow an operator to choose any automated process supported by the validator.  (No requirements are stated about what processess to support, only one is standardized to date.)  An implementation needs to also afford the operator the ability to override or manage via a purely manual process, the storage of managed keys.  This includes adding, deleting, changing and inspecting.</t>
+<t>A validator needs to have trust anchors or it will never be able to construct a chain of trust.  Trust anchors are defined by DNSSEC to be keys that are inherently trusted, configured by authorized parties, in the validator.  The configuration can be via an automated process, such as Automated Updates of DNSSEC Trust Anchors [RFC 5011 as reference], or via manual process.</t>
+<t>An implementation of a validator needs to allow an operator to choose any automated process supported by the validator.  (No requirements are stated about what processes to support, only one is standardized to date.)  An implementation needs to also afford the operator the ability to override or manage via a purely manual process, the storage of managed keys.  This includes adding, deleting, changing and inspecting.</t>
 <t>Beyond the scope of these requirements are the decision processes of authorized parties in placing trust in keys.</t>
 
 <t><list style="format REQ%d:" counter="my_count">
@@ -123,12 +125,14 @@ from a trusted URL, or a PKIX certificate.</t>
         
 </list></t>
 
+<!--
 <t>Editor-to-editor: I'm undecided on the following.  As much as the 
-first order requriements are for operators to "edit" the trust anchor
+first order requirements are for operators to "edit" the trust anchor
 store, including requirements for "bootstrapping" might be a good
-idea.  I'd strike refering to implementations though, as anything
+idea.  I'd strike referring to implementations though, as anything
 done today meets operating realities that may change underneath us
 in the future.</t>
+-->
 
 <t>Although some bootstrapping mechanisms to securely retrieve publish
 <xref target="RFC7958"/> and retrieve <xref target="UNBOUND-ANCHOR"/>
