@@ -318,26 +318,39 @@ stored in the cache and those published by the authoritative server.</t>
 
 <t>An emergency KSK / ZSK rollover may result in a new KSK / ZSK with
 associated new RRSIG published in the authoritative zone, while DNSSEC
-validator may still cache the old value of the ZSK / KSK. For a RRset
+validator may still cache the old value of the ZSK / KSK.  For a RRset
 not cached, the DNSSEC validator performs a DNSSEC query to the
 authoritative server that returns the RRset signed with the new KSK /
 ZSK. The DNSSEC validator may not be able to retrieve the new KSK / ZSK
 while being unable to validate the signature with the old KSK / ZSK.
 This either result in a bogus resolution or in an invalid signature
-check.</t>
-
-<t>[I AM NOT SURE THE ABOVE TEXT IS CORRECT AS THE RRSIG CARRIES THE KEY
-ID, SO THE DNSSEC VALIDATOR SHOULD BE ABLE TO DETECT IT IS USING THE
-WRONG KEY. WOULDN'T IT IN THAT CASE QUERY THE DNSKEY ? ]</t>
+check. Note that by comparing the Key Tag Fields, the DNSSEC validator
+is able to notice the new KSK / ZSK used for signing differs from the
+one used to generate the received generated signature. However, the
+DNSSEC validator is not expectected to retrieve the new ZSK / KSK, as
+such behavior could be used by an attacker. Intsead, ZSK / ZSK key roll
+ove rprocedure are expected to avoid such inconsistencies.</t>
 
 <t>Similarly, a KSK / ZSK roll over may be performed normally, that is
 as described in <xref target="RFC6781"/> and <xref target="RFC7583"/>.
-While the KSK / ZSK is performed, there is no obligation to flush the
-RRsets in the cache that have been associated with the old key. In fact,
-these RRset may still be considered as trusted and be removed from the
-cache as their TTL timeout. With very long TTL, these RRset may remain
-in the cache while the ZSK / KSK with a shorter TTL is no longer
-published nor in the cache. </t>
+While the KSK / ZSK roll over is performed, there is no obligation to
+flush the RRsets in the cache that have been associated with the old
+key. In fact, these RRset may still be considered as trusted and be
+removed from the cache as their TTL timeout. With very long TTL, these
+RRset may remain in the cache while the ZSK / KSK with a shorter TTL is
+no longer published nor in the cache. In such situations, the purpose of
+the KSK / ZSK is to validate the data is considered trusted at the time
+it enters the cache, and such trust may remain after the KSK / ZSK is
+being rolled over. Note also that even though the data may not be
+associated to the KSK / ZSK that has been used to valiadte the data, the
+link between the KSK / ZSK and teh data is still stored in teh cache
+using the RRSIG. Note also that inconsistencies between the ZSK / KSK
+stored in the cache and those published on the authoritative server, may
+lead to inconsistencies to downstream DNSSEC validators that realy on
+multiple cache over time. Typically, a request for the KSK / ZSK may
+have been provided by a cache that is storing the new published value,
+while the data and associated sigature may be associated to the old KSK
+/ ZSK.</t>
 
 <t>KSK and ZSK are associated with configuration parameters, and as such
 are expected to be stored only in the cache. As a result, flushing their
@@ -353,15 +366,17 @@ an attack.</t>
 
 <t><list style="format REQ%d:" counter="my_count">
 
-<t>A DNSSEC validator MUST store its KSK/ZSK in a dedicated KSK/ZSK
-Data Base. Such database MUST store informations associated to
-each KSK/ZSK status as well as the time the status has been noticed
-by the DNSSEC validator. Such database MUST be resilient to DNSSEC
-validator reboot.</t>
+<t>A DNSSEC validator MUST store its KSK/ZSK in a dedicated KSK/ZSK Data
+Base. Such database MUST store informations associated to each KSK/ZSK
+status as well as the time the status has been noticed by the DNSSEC
+validator. Such database MUST NOT be resilient to DNSSEC validator
+reboot, that is the information stored in the Data Base MUST NOT be used
+to populate the cache, while it MAY be used as second factor
+verification, or audit for example.</t>
 
-<t>KSK/ZSK status SHOULD be monitored continuously and associated
-with their respective state as well as verified time. These states and
-time MUST be resilient to reboot.</t>
+<t>KSK/ZSK status and informaton SHOULD be monitored continuously and
+associated with their respective state as well as verified time. These
+states and time SHOULD be resilient to reboot.</t>
 
 <t>KSK/ZSK states SHOULD at least consider those described in section
 3.1 of <xref target="RFC7583"/> (Generated, Published, Ready, Active,
@@ -383,11 +398,11 @@ KSK/ZSK Database.</t>
 Store is expected to be resilient to reboot. However the motivation for
 having the KSK/ZSK Data Store resilient to reboot differs from those for
 making the TA Data Store resilient to reboot. TA Data Store needs to be
-resilient as the Trust Anchors are necessary to perform the DNSSEC validation.
-KSK/ZSK are not expected to be locally stored, but instead are expected to be
-resolved, validated by the TA and stored in the cache. The reason for
-making the KSK/ZSK Data Store resilient to reboot is mostly to enable
-audit of the DNSSEC validator.</t>
+resilient as the Trust Anchors are necessary to perform the DNSSEC
+validation.  KSK/ZSK are not expected to be locally stored, but instead
+are expected to be resolved, validated by the TA and stored in the
+cache. The reason for making the KSK/ZSK Data Store resilient to reboot
+is mostly to enable audit of the DNSSEC validator.</t>
    
 </section>
 
@@ -524,8 +539,9 @@ scheme  supported by an authoritative server.</t>
 <section title="Reporting">
 
 <t>A DNSSEC validator receiving a DNS response cannot make the
-difference between receiving an non-secure response versus an
-attack.</t>
+difference between receiving an non-secure response versus an attack.
+Dropping DNSSEC fields by a misconfigured middle boxes, such as DS,
+RRRSIG is considered as an attack.</t>
 
 <t>A DNSSEC validator is expected to perform secure DNS resolution and
 as such protect its stub client. An invalid response may be the result
@@ -534,7 +550,7 @@ an important role in sharing this information.</t>
 
 <t><list style="format REQ%d:" counter="my_count">
 
-<t>A DNSSEC validation should be able to report the unavailability of
+<t>A DNSSEC validation SHOULD be able to report the unavailability of
 the DNSSEC service.</t>
 
 <t>A DNSSEC validator SHOULD be able to report a invalid DNSSEC
@@ -567,7 +583,7 @@ attacks.  </t>
 value to prevent the DNSSEC validator to check signatures.  </t>
       
 <t> An attacker may also affect the resolution service by regularly
-asking the DNSSEC Validator to flush the KSK/ZSK from its cache (cf.
+asking the DNSSEC validator to flush the KSK/ZSK from its cache (cf.
 <xref target="sec-ksk-zsk"/>). All associated data will also
 be flushed. This generates additional DNSSEC resolution and additional
 validations, as RRSet that were cached require a DNSSEC resolution over
@@ -575,14 +591,14 @@ the Internet. This affects the resolution service by slowing down
 responses, and increases the load on the DNSSEC validator.  </t>
       
 <t> An attacker may ask the DNSSEC validator to consider a rogue KSK/ZSK
-( cf. Invalid DS in <xref target="sec-invalid-ds"/> or  Private KSK in <xref target="sec-trust-anchor"/>),
-thus hijacking the DNS zone.  Similarly, (cf. <xref
-target="sec-ksk-zsk"/>) an attacker may inform the DNSSEC
-validator not to trust a given KSK in order to prevent DNSSEC validation
-to be performed.  </t>
+( cf. Invalid DS in <xref target="sec-invalid-ds"/> or  Private KSK in
+<xref target="sec-trust-anchor"/>), thus hijacking the DNS zone.
+Similarly, (cf. <xref target="sec-ksk-zsk"/>) an attacker may inform the
+DNSSEC validator not to trust a given KSK in order to prevent DNSSEC
+validation to be performed.  </t>
       
-<t> An attacker (cf. <xref target="sec-ksk-zsk"/>)  can advertise
-a "known insecure" KSK or ZSK is "back to secure" to prevent signature
+<t> An attacker (cf. <xref target="sec-ksk-zsk"/>)  can advertise a
+"known insecure" KSK or ZSK is "back to secure" to prevent signature
 check to be performed correctly.  </t>
       
 <t> As a result, information considered by the DNSSEC validator should
