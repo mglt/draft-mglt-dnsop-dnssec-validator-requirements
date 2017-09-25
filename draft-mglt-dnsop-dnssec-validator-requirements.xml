@@ -462,18 +462,29 @@ KSK/ZSK is known "back to secure".</t>
 
 <section title="Interactions with cached RRsets">
 
-<t>In order to refresh a KSK/ZSK, a trusted third party may simply flush
-the corresponding KSK/ZSK from the cache.</t>
+<t>The key roll over procedure intends to ensure that the published RRsets can
+be validated with the KSK / ZSK stored in the various cache of the DNSSEC
+validators. As a consequence, the key roll over enables trusted data to be
+cached. However, the key roll over does not necessarily prevents that cached be
+always validated with the currenlty published key. In fact, a cached data may
+have been validated by the former key and remain in the cache while the former
+key has been rolled out. Such inconsistencies may be acceptable and correspond
+to the following trust model: the KSK / ZSK validate the cached data can be
+trusted at time T. There is no specific information that leads to considers
+that trust at time T is subject to doubts at current time, so the cached data
+remain trusted.</t>
 
-<t>In order to avoid inconsistency between KSK/ZSK and cached RRsets, a
-trusted third party may willing to remove all cached RRsets that have
-been validated by the KSK/ZSK upon some specific states (revoked, or
-Removed for example), of after some time after the state is noticed. In
-this later case, only the RRset whose TTL has not expired yet would be
-flushed. </t>
+<t>While such inconsistencies may have little impact on end host DNSSEC
+validators, it may be different for large resolving platforms with downstream
+DNSSEC validators, and a DNSSEC validator may be willing to maintain its cached
+data consistent with the published KSK / ZSK.  A trusted third party may
+willing to remove all cached RRsets that have been validated by the KSK/ZSK
+upon some specific states (revoked, or Removed for example), of after some time
+after the state is noticed. In this later case, only the RRset whose TTL has
+not expired yet would be flushed.</t>
+	
+<t>On the other hand, when a KSK / ZSK is known to be corrupted, this state may affect the trust that has been established at time T. In such case, the DNSSEC validator may be willling to flush all cached data that has been validated by the currently known corrupted KSK / ZSK, including the KSK / ZSK itslef.</t>  
 
-<t>Finally, when a KSK/ZSK is known to be corrupted, the DNSSEC
-validator may removed all cached RRsets associated to the KSK/ZSK.</t>
 
 <t>As a result, the following requirements are expected: </t>
 
