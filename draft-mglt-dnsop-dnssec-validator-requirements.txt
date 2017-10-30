@@ -5,10 +5,10 @@
 DNSOP                                                         D. Migault
 Internet-Draft                                                  Ericsson
 Intended status: Standards Track                                 D. York
-Expires: April 30, 2018                                 Internet Society
+Expires: May 3, 2018                                    Internet Society
                                                                 E. Lewis
                                                                    ICANN
-                                                        October 27, 2017
+                                                        October 30, 2017
 
 
                      DNSSEC Validators Requirements
@@ -43,7 +43,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on April 30, 2018.
+   This Internet-Draft will expire on May 3, 2018.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Migault, et al.          Expires April 30, 2018                 [Page 1]
+Migault, et al.            Expires May 3, 2018                  [Page 1]
 
 Internet-Draft        DNSSEC Validator Requirements         October 2017
 
@@ -73,25 +73,26 @@ Table of Contents
    1.  Requirements notation . . . . . . . . . . . . . . . . . . . .   2
    2.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
    3.  Terminology . . . . . . . . . . . . . . . . . . . . . . . . .   3
-   4.  Time derivation and absence of Real Time Clock  . . . . . . .   4
-   5.  Trust Anchor  . . . . . . . . . . . . . . . . . . . . . . . .   4
-     5.1.  Trust Anchor Bootstrapping  . . . . . . . . . . . . . . .   4
-     5.2.  Trust Anchor Data Store . . . . . . . . . . . . . . . . .   5
-     5.3.  Interactions with the cached RRsets . . . . . . . . . . .   7
-   6.  ZSK / KSK . . . . . . . . . . . . . . . . . . . . . . . . . .   7
-     6.1.  KSK/ZSK Data Store  . . . . . . . . . . . . . . . . . . .   7
-     6.2.  KSK/ZSK Data Store and Trust Anchor Data Store  . . . . .   9
-     6.3.  Interactions with cached RRsets . . . . . . . . . . . . .  10
-   7.  DS  . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  11
-   8.  Cryptography Deprecation  . . . . . . . . . . . . . . . . . .  11
-   9.  Reporting . . . . . . . . . . . . . . . . . . . . . . . . . .  11
-   10. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  12
-   11. Security Considerations . . . . . . . . . . . . . . . . . . .  12
-   12. Acknowledgment  . . . . . . . . . . . . . . . . . . . . . . .  13
-   13. References  . . . . . . . . . . . . . . . . . . . . . . . . .  13
-     13.1.  Normative References . . . . . . . . . . . . . . . . . .  13
-     13.2.  Informational References . . . . . . . . . . . . . . . .  14
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  15
+   4.  DNSSEC Validator Description  . . . . . . . . . . . . . . . .   4
+   5.  Time derivation and absence of Real Time Clock  . . . . . . .   5
+   6.  Trust Anchor  . . . . . . . . . . . . . . . . . . . . . . . .   5
+     6.1.  Trust Anchor Bootstrapping  . . . . . . . . . . . . . . .   6
+     6.2.  Trust Anchor Data Store . . . . . . . . . . . . . . . . .   7
+     6.3.  Interactions with the cached RRsets . . . . . . . . . . .   8
+   7.  ZSK / KSK . . . . . . . . . . . . . . . . . . . . . . . . . .   8
+     7.1.  KSK/ZSK Data Store  . . . . . . . . . . . . . . . . . . .   8
+     7.2.  KSK/ZSK Data Store and Trust Anchor Data Store  . . . . .  10
+     7.3.  Interactions with cached RRsets . . . . . . . . . . . . .  11
+   8.  DS  . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  12
+   9.  Cryptography Deprecation  . . . . . . . . . . . . . . . . . .  12
+   10. Reporting . . . . . . . . . . . . . . . . . . . . . . . . . .  13
+   11. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  13
+   12. Security Considerations . . . . . . . . . . . . . . . . . . .  13
+   13. Acknowledgment  . . . . . . . . . . . . . . . . . . . . . . .  14
+   14. References  . . . . . . . . . . . . . . . . . . . . . . . . .  14
+     14.1.  Normative References . . . . . . . . . . . . . . . . . .  14
+     14.2.  Informational References . . . . . . . . . . . . . . . .  15
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  16
 
 1.  Requirements notation
 
@@ -104,15 +105,17 @@ Table of Contents
    DNSSEC validation [RFC4033], [RFC4034] and [RFC4035] has two core
    concepts.  One is the matching of a RRSIG resource record's contents
    to a RRset, making use of a DNSKEY resource record (named in the
-   RRSIG record).  Two is the placing of trust in the DNSKEY resource
-   record.
 
 
 
-Migault, et al.          Expires April 30, 2018                 [Page 2]
+
+Migault, et al.            Expires May 3, 2018                  [Page 2]
 
 Internet-Draft        DNSSEC Validator Requirements         October 2017
 
+
+   RRSIG record).  Two is the placing of trust in the DNSKEY resource
+   record.
 
    Evaluation based on a RRSIG record involves a few steps.  Most
    visible is a cryptographic operation, matching the digital signature
@@ -162,15 +165,91 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
 
 
 
-
-
-
-Migault, et al.          Expires April 30, 2018                 [Page 3]
+Migault, et al.            Expires May 3, 2018                  [Page 3]
 
 Internet-Draft        DNSSEC Validator Requirements         October 2017
 
 
-4.  Time derivation and absence of Real Time Clock
+4.  DNSSEC Validator Description
+
+   This is a conceptual block diagram of the elements involved with
+   DNSSEC validation.  This is not meant to be an architecture for code,
+   this is meant to be a framework for discussion and explanation.
+
+
+            +-------------+  +---------------+
+            |             |  |               |
+            | Time Source |  | Cryptographic |
+            |             |  |   Libraries   |
+            |             |  |               |
+            +-------------+  +---------------+
+                   |                 |
+                   v                 v
+            +--------------------------------+   +--------------+
+            |                                |   |              |
+            |                                |<--| Trust Anchor |
+            |    DNSSEC Validation Engine    |   |   Manager &  |
+            |                                |-->|   Storage    |
+            |                                |   |              |
+            +--------------------------------+   +--------------+
+                  ^ |               ^                   |
+                  | v               |                   |
+            +-------------+  +---------------+          |
+            |             |  |               |          |
+            | DNS Caches  |  | DNS Messages  |<---------+
+            |             |  |               |
+            +-------------+  +---------------+
+
+                  Figure 1: DNSSEC Validator Description
+
+   Time Source :  Wall clock time Cryptograhic Libraries: Code
+      performing mathematical functions.
+
+   DNS Message :  Receiver of DNS responses DNS Caches: Positive and
+      negative caches.
+
+   Trust Anchor Manager :  database of trust anchors, manages trust
+      DNSSEC Validation Engine: follows local policy to approve data.
+
+   a.  Time Source -> DNSSEC Validation Engine Current time upon
+       request, in appropriate time zone setting
+
+   b.  Cryptographic Libraries-> DNSSEC Validation Engine Supplies code
+       to perform math, the engine determines the DNSSEC Security
+       Algorithms supported
+
+
+
+
+Migault, et al.            Expires May 3, 2018                  [Page 4]
+
+Internet-Draft        DNSSEC Validator Requirements         October 2017
+
+
+   c.  DNS Caches <- DNSSEC Validation Engine Enter the results of a
+       validation (positive data, negative failures)
+
+   d.  DNS Caches -> DNSSEC Validation Engine Stored keys, etc., used in
+       building a chain of trust
+
+   e.  DNS Messages -> DNSSEC Validation Engine DNS Responses needed
+       validation
+
+   f.  Trust Anchor Management & Storage -> DNSSEC Validation Engine
+       Supplies trust anchor information when needed.
+
+   g.  Trust Anchor Management & Storage <- DNSSEC Validation Engine
+       Information to update the trust anchor store, resulting from
+       automated update requests.
+
+   h.  Trust Anchor Management & Storage -> DNS Messages Requests made
+       to manage trust anchors.
+
+   i.  Not shown - Name Server Process Management interfaces to
+       elements, handling of Checking Disabled request, responses, as
+       well as all API requests made of the name server.
+
+5.  Time derivation and absence of Real Time Clock
 
    With M2M communication some devices are not expecting to embed Real
    Time Clock (Raspberry Pi is one example of such devices).  When these
@@ -189,9 +268,21 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
    queries.  In other words, the mechanisms may have to update the time
    over an unsecure DNSSEC resolution.
 
-5.  Trust Anchor
+6.  Trust Anchor
 
-5.1.  Trust Anchor Bootstrapping
+
+
+
+
+
+
+
+Migault, et al.            Expires May 3, 2018                  [Page 5]
+
+Internet-Draft        DNSSEC Validator Requirements         October 2017
+
+
+6.1.  Trust Anchor Bootstrapping
 
    A validator needs to have trust anchors or it will never be able to
    construct a chain of trust.  Trust anchors are defined by DNSSEC to
@@ -217,15 +308,6 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
           validator MUST send a warning and SHOULD NOT start validating
           traffic without manual validation.
 
-
-
-
-
-Migault, et al.          Expires April 30, 2018                 [Page 4]
-
-Internet-Draft        DNSSEC Validator Requirements         October 2017
-
-
    REQ3:  A DNSSEC validator SHOULD be able to retrieve a Trust Anchor
           with bootstrapping mechanism.  Such mechanism' security MUST
           NOT be based on DNSSEC, but could instead include downloading
@@ -248,10 +330,18 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
    Such companies may provision there DNSSEC validator with the Trust
    Anchor KSK for the zone example.com in addition to the regular DNSSEC
    delegation.  Similarly some some domains may present different views
+
+
+
+Migault, et al.            Expires May 3, 2018                  [Page 6]
+
+Internet-Draft        DNSSEC Validator Requirements         October 2017
+
+
    such as a "private" view and a "public view".  These zones may have
    some different content, and may use a different KSK for each view.
 
-5.2.  Trust Anchor Data Store
+6.2.  Trust Anchor Data Store
 
    When DNSSEC validator are running and a Trust Anchor KSK roll over is
    ongoing, a network administrator or any trust party may be willing to
@@ -274,14 +364,6 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
    configured, there is little hope the DNSSEC validator be re-
    configured with the legitimate Trust Anchor without manual
    intervention.  As a result, it is crucial to cautiously handle
-
-
-
-Migault, et al.          Expires April 30, 2018                 [Page 5]
-
-Internet-Draft        DNSSEC Validator Requirements         October 2017
-
-
    operations related to the Trust Anchor provisioning.  Means must be
    provided so network administrator can clearly diagnose the reason a
    Trust Anchor is not valid to avoid accepting a rogue Trust Anchor
@@ -304,6 +386,13 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
    are of local scope and not even registered in the public DNS
    infrastructure.  This requires the ability to manage the Trust Anchor
    as well.
+
+
+
+Migault, et al.            Expires May 3, 2018                  [Page 7]
+
+Internet-Draft        DNSSEC Validator Requirements         October 2017
+
 
    The necessity to interact with the Trust Anchors lead to the
    following requirements:
@@ -328,17 +417,7 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
    REQ7:  A trusted party MUST be able to add, remove a Trust Anchor in
           the Trust Anchor Data Store.
 
-
-
-
-
-
-Migault, et al.          Expires April 30, 2018                 [Page 6]
-
-Internet-Draft        DNSSEC Validator Requirements         October 2017
-
-
-5.3.  Interactions with the cached RRsets
+6.3.  Interactions with the cached RRsets
 
    In addition when a Trust Anchor is revoked, the DNSSEC validator may
    behave differently if the revocation is motivated by a regular roll
@@ -351,9 +430,9 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
    REQ8:  A DNSSEC validator MUST be able to flush the cached RRsets
           that rely on a Trust Anchor.
 
-6.  ZSK / KSK
+7.  ZSK / KSK
 
-6.1.  KSK/ZSK Data Store
+7.1.  KSK/ZSK Data Store
 
    A number of reasons may result in inconsistencies between the RRsets
    stored in the cache and those published by the authoritative server.
@@ -363,6 +442,14 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
    DNSSEC validator may still cache the old value of the ZSK / KSK.  For
    a RRset not cached, the DNSSEC validator performs a DNSSEC query to
    the authoritative server that returns the RRset signed with the new
+
+
+
+Migault, et al.            Expires May 3, 2018                  [Page 8]
+
+Internet-Draft        DNSSEC Validator Requirements         October 2017
+
+
    KSK / ZSK.  The DNSSEC validator may not be able to retrieve the new
    KSK / ZSK while being unable to validate the signature with the old
    KSK / ZSK.  This either result in a bogus resolution or in an invalid
@@ -386,14 +473,6 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
    time it enters the cache, and such trust may remain after the KSK /
    ZSK is being rolled over.  Note also that even though the data may
    not be associated to the KSK / ZSK that has been used to valiadte the
-
-
-
-Migault, et al.          Expires April 30, 2018                 [Page 7]
-
-Internet-Draft        DNSSEC Validator Requirements         October 2017
-
-
    data, the link between the KSK / ZSK and teh data is still stored in
    teh cache using the RRSIG.  Note also that inconsistencies between
    the ZSK / KSK stored in the cache and those published on the
@@ -419,6 +498,14 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
           ZSK Data Base.  Such database MUST store informations
           associated to each KSK/ZSK status as well as the time the
           status has been noticed by the DNSSEC validator.  Such
+
+
+
+Migault, et al.            Expires May 3, 2018                  [Page 9]
+
+Internet-Draft        DNSSEC Validator Requirements         October 2017
+
+
           database MUST NOT be resilient to DNSSEC validator reboot,
           that is the information stored in the Data Base MUST NOT be
           used to populate the cache, while it MAY be used as second
@@ -442,14 +529,6 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
    REQ13: A trusted party MUST be able to add, remove a Trust Anchor in
           the KSK/ZSK Database.
 
-
-
-
-Migault, et al.          Expires April 30, 2018                 [Page 8]
-
-Internet-Draft        DNSSEC Validator Requirements         October 2017
-
-
    Similarly to its counter part the TA Data Store, the KSK/ZSK Data
    Store is expected to be resilient to reboot.  However the motivation
    for having the KSK/ZSK Data Store resilient to reboot differs from
@@ -461,7 +540,7 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
    Data Store resilient to reboot is mostly to enable audit of the
    DNSSEC validator.
 
-6.2.  KSK/ZSK Data Store and Trust Anchor Data Store
+7.2.  KSK/ZSK Data Store and Trust Anchor Data Store
 
    A zone may have been badly signed, which means that the KSK or ZSK
    cannot validate the RRSIG associated to the RRsets.  This may not be
@@ -473,6 +552,15 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
    policy design that needs to be taken by the network administrator.
    In other ways, flushing the RRset are not expected to address this
    issue.  Such KSK/ZSK are known as Negative Trust Anchors [RFC7646].
+
+
+
+
+
+Migault, et al.            Expires May 3, 2018                 [Page 10]
+
+Internet-Draft        DNSSEC Validator Requirements         October 2017
+
 
    With Negative Trust Anchor, the zone for a given time will be known
    as "known insecure".  The DNSSEC Validator is not expected to perform
@@ -498,14 +586,6 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
    whether the RRSIG cannot be validated or that RRSIG are invalid.  As
    a result:
 
-
-
-
-Migault, et al.          Expires April 30, 2018                 [Page 9]
-
-Internet-Draft        DNSSEC Validator Requirements         October 2017
-
-
    REQ14: A trusted party MUST be able to indicate a DNSSEC validator
           that a KSK or a ZSK as Negative Trust Anchor.  Such Trust
           Anchors MUST NOT be used for RRSIG validation and MUST be
@@ -515,7 +595,7 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
    REQ15: A trusted party MUST be able to indicate a DNSSEC validator
           that a KSK/ZSK is known "back to secure".
 
-6.3.  Interactions with cached RRsets
+7.3.  Interactions with cached RRsets
 
    The key roll over procedure intends to ensure that the published
    RRsets can be validated with the KSK / ZSK stored in the various
@@ -529,6 +609,14 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
    cached data can be trusted at time T.  There is no specific
    information that leads to considers that trust at time T is subject
    to doubts at current time, so the cached data remain trusted.
+
+
+
+
+Migault, et al.            Expires May 3, 2018                 [Page 11]
+
+Internet-Draft        DNSSEC Validator Requirements         October 2017
+
 
    While such inconsistencies may have little impact on end host DNSSEC
    validators, it may be different for large resolving platforms with
@@ -553,16 +641,7 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
    REQ17: A DNSSEC validator MUST be able to flush the cached RRsets
           associated to a KSK/ZSK.
 
-
-
-
-
-Migault, et al.          Expires April 30, 2018                [Page 10]
-
-Internet-Draft        DNSSEC Validator Requirements         October 2017
-
-
-7.  DS
+8.  DS
 
    The DS RRset is stored in the parent zone to build a chain of trust
    with the child zone.  This DS RRset can be invalid because its RDATA
@@ -571,17 +650,16 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
 
    In both cases the child zone is considered as bogus and the valid
    child zone's KSK should become a Trust Anchor KSK.  This requirements
-   is fulfilled by the requirement to add a Trust Anchor in Section 5.
+   is fulfilled by the requirement to add a Trust Anchor in Section 6.
 
-8.  Cryptography Deprecation
+9.  Cryptography Deprecation
 
-   As mentioned in [I-D.ietf-ipsecme-rfc4307bis] and
-   [I-D.ietf-ipsecme-rfc7321bis] cryptography used one day is expected
-   over the time to be replaced by new and more robust cryptographic
-   mechanisms.  In the case of DNSSEC signature protocols are likely to
-   be updated over time.  In order to anticipate the sunset of one of
-   the signature scheme, a DNSSEC validator may willing to estimate the
-   impact of deprecating one signature scheme.
+   As mentioned in [RFC8247] and [RFC8221] cryptography used one day is
+   expected over the time to be replaced by new and more robust
+   cryptographic mechanisms.  In the case of DNSSEC signature protocols
+   are likely to be updated over time.  In order to anticipate the
+   sunset of one of the signature scheme, a DNSSEC validator may willing
+   to estimate the impact of deprecating one signature scheme.
 
    Currently [RFC6975] provides the ability for a DNSSEC validator to
    announce an authoritative server the supported signature schemes.
@@ -589,13 +667,20 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
    trying whether a signature scheme is supported by the authoritative
    server.
 
+
+
+Migault, et al.            Expires May 3, 2018                 [Page 12]
+
+Internet-Draft        DNSSEC Validator Requirements         October 2017
+
+
    In order for a DNSSEC validator to safely deprecate one signature
    scheme the following requirement should be fulfilled.
 
    REQ18: A DNSSEC validator SHOULD be able to request the signature
           scheme supported by an authoritative server.
 
-9.  Reporting
+10.  Reporting
 
    A DNSSEC validator receiving a DNS response cannot make the
    difference between receiving an non-secure response versus an attack.
@@ -610,22 +695,14 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
    REQ19: A DNSSEC validation SHOULD be able to report the
           unavailability of the DNSSEC service.
 
-
-
-
-Migault, et al.          Expires April 30, 2018                [Page 11]
-
-Internet-Draft        DNSSEC Validator Requirements         October 2017
-
-
    REQ20: A DNSSEC validator SHOULD be able to report a invalid DNSSEC
           validation.
 
-10.  IANA Considerations
+11.  IANA Considerations
 
    There are no IANA consideration for this document.
 
-11.  Security Considerations
+12.  Security Considerations
 
    The requirements listed in this document aim at providing the DNSSEC
    validator appropriated information so DNSSEC validation can be
@@ -636,24 +713,33 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
    attacks.
 
    As an appropriate time value is necessary to perform signature check
-   (cf.  Section 4), an attacker may provide rogue time value to prevent
+   (cf.  Section 5), an attacker may provide rogue time value to prevent
    the DNSSEC validator to check signatures.
 
    An attacker may also affect the resolution service by regularly
    asking the DNSSEC validator to flush the KSK/ZSK from its cache (cf.
-   Section 6).  All associated data will also be flushed.  This
+   Section 7).  All associated data will also be flushed.  This
    generates additional DNSSEC resolution and additional validations, as
    RRSet that were cached require a DNSSEC resolution over the Internet.
+
+
+
+
+Migault, et al.            Expires May 3, 2018                 [Page 13]
+
+Internet-Draft        DNSSEC Validator Requirements         October 2017
+
+
    This affects the resolution service by slowing down responses, and
    increases the load on the DNSSEC validator.
 
    An attacker may ask the DNSSEC validator to consider a rogue KSK/ZSK
-   ( cf. Invalid DS in Section 7 or Private KSK in Section 5), thus
-   hijacking the DNS zone.  Similarly, (cf.  Section 6) an attacker may
+   ( cf. Invalid DS in Section 8 or Private KSK in Section 6), thus
+   hijacking the DNS zone.  Similarly, (cf.  Section 7) an attacker may
    inform the DNSSEC validator not to trust a given KSK in order to
    prevent DNSSEC validation to be performed.
 
-   An attacker (cf.  Section 6) can advertise a "known insecure" KSK or
+   An attacker (cf.  Section 7) can advertise a "known insecure" KSK or
    ZSK is "back to secure" to prevent signature check to be performed
    correctly.
 
@@ -662,19 +748,7 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
    authenticated, and the channel used to exchange the information
    should also be protected and authenticated.
 
-
-
-
-
-
-
-
-Migault, et al.          Expires April 30, 2018                [Page 12]
-
-Internet-Draft        DNSSEC Validator Requirements         October 2017
-
-
-12.  Acknowledgment
+13.  Acknowledgment
 
    The need to address DNSSEC issues on the resolver side started in the
    Home Networks mailing list and during the IETF87 in Berlin.  Among
@@ -686,9 +760,9 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
    The current document has been initiated after a discussion with Paul
    Wouter and Evan Hunt.
 
-13.  References
+14.  References
 
-13.1.  Normative References
+14.1.  Normative References
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -705,6 +779,13 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
               RFC 4034, DOI 10.17487/RFC4034, March 2005,
               <https://www.rfc-editor.org/info/rfc4034>.
 
+
+
+Migault, et al.            Expires May 3, 2018                 [Page 14]
+
+Internet-Draft        DNSSEC Validator Requirements         October 2017
+
+
    [RFC4035]  Arends, R., Austein, R., Larson, M., Massey, D., and S.
               Rose, "Protocol Modifications for the DNS Security
               Extensions", RFC 4035, DOI 10.17487/RFC4035, March 2005,
@@ -719,36 +800,25 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
               (DNSSEC)", RFC 6975, DOI 10.17487/RFC6975, July 2013,
               <https://www.rfc-editor.org/info/rfc6975>.
 
+   [RFC8221]  Wouters, P., Migault, D., Mattsson, J., Nir, Y., and T.
+              Kivinen, "Cryptographic Algorithm Implementation
+              Requirements and Usage Guidance for Encapsulating Security
+              Payload (ESP) and Authentication Header (AH)", RFC 8221,
+              DOI 10.17487/RFC8221, October 2017, <https://www.rfc-
+              editor.org/info/rfc8221>.
 
+   [RFC8247]  Nir, Y., Kivinen, T., Wouters, P., and D. Migault,
+              "Algorithm Implementation Requirements and Usage Guidance
+              for the Internet Key Exchange Protocol Version 2 (IKEv2)",
+              RFC 8247, DOI 10.17487/RFC8247, September 2017,
+              <https://www.rfc-editor.org/info/rfc8247>.
 
-
-
-
-
-Migault, et al.          Expires April 30, 2018                [Page 13]
-
-Internet-Draft        DNSSEC Validator Requirements         October 2017
-
-
-13.2.  Informational References
+14.2.  Informational References
 
    [I-D.ietf-dnsop-rfc5011-security-considerations]
               Hardaker, W. and W. Kumari, "Security Considerations for
               RFC5011 Publishers", draft-ietf-dnsop-rfc5011-security-
               considerations-07 (work in progress), October 2017.
-
-   [I-D.ietf-ipsecme-rfc4307bis]
-              Nir, Y., Kivinen, T., Wouters, P., and D. Migault,
-              "Algorithm Implementation Requirements and Usage Guidance
-              for IKEv2", draft-ietf-ipsecme-rfc4307bis-18 (work in
-              progress), March 2017.
-
-   [I-D.ietf-ipsecme-rfc7321bis]
-              Wouters, P., Migault, D., Mattsson, J., Nir, Y., and T.
-              Kivinen, "Cryptographic Algorithm Implementation
-              Requirements and Usage Guidance for Encapsulating Security
-              Payload (ESP) and Authentication Header (AH)", draft-ietf-
-              ipsecme-rfc7321bis-06 (work in progress), June 2017.
 
    [RFC6781]  Kolkman, O., Mekking, W., and R. Gieben, "DNSSEC
               Operational Practices, Version 2", RFC 6781,
@@ -765,6 +835,13 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
               Anchors", RFC 7646, DOI 10.17487/RFC7646, September 2015,
               <https://www.rfc-editor.org/info/rfc7646>.
 
+
+
+Migault, et al.            Expires May 3, 2018                 [Page 15]
+
+Internet-Draft        DNSSEC Validator Requirements         October 2017
+
+
    [RFC7958]  Abley, J., Schlyter, J., Bailey, G., and P. Hoffman,
               "DNSSEC Trust Anchor Publication for the Root Zone",
               RFC 7958, DOI 10.17487/RFC7958, August 2016,
@@ -774,17 +851,6 @@ Internet-Draft        DNSSEC Validator Requirements         October 2017
               "unbound-anchor.c File Reference",
               <https://www.unbound.net/documentation/doxygen/unbound-
               anchor_8c.html#details>.
-
-
-
-
-
-
-
-Migault, et al.          Expires April 30, 2018                [Page 14]
-
-Internet-Draft        DNSSEC Validator Requirements         October 2017
-
 
 Authors' Addresses
 
@@ -827,14 +893,4 @@ Authors' Addresses
 
 
 
-
-
-
-
-
-
-
-
-
-
-Migault, et al.          Expires April 30, 2018                [Page 15]
+Migault, et al.            Expires May 3, 2018                 [Page 16]

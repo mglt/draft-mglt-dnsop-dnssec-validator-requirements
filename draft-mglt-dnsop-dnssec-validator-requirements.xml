@@ -120,6 +120,90 @@ this is needed, but seems appropriate)</t>
 
     </section>
 
+<section title="DNSSEC Validator Description">
+
+<t>This is a conceptual block diagram of the elements involved
+with DNSSEC validation.  This is not meant to be an architecture
+for code, this is meant to be a framework for discussion and
+explanation.</t>
+
+          <figure anchor="fig:overview" title="DNSSEC Validator Description">
+            <artwork align="center"><![CDATA[
+
+  +-------------+  +---------------+
+  |             |  |               |
+  | Time Source |  | Cryptographic | 
+  |             |  |   Libraries   |
+  |             |  |               |
+  +-------------+  +---------------+
+         |                 |
+         v                 v
+  +--------------------------------+   +--------------+
+  |                                |   |              |
+  |                                |<--| Trust Anchor |
+  |    DNSSEC Validation Engine    |   |   Manager &  |
+  |                                |-->|   Storage    |
+  |                                |   |              |
+  +--------------------------------+   +--------------+
+        ^ |               ^                   |
+        | v               |                   |
+  +-------------+  +---------------+          |
+  |             |  |               |          |
+  | DNS Caches  |  | DNS Messages  |<---------+
+  |             |  |               |
+  +-------------+  +---------------+
+]]></artwork>
+</figure>
+
+<t>
+<list style="hanging">
+
+<t hangText='Time Source :'> Wall clock time
+Cryptograhic Libraries: Code performing mathematical functions.</t>
+
+<t hangText='DNS Message :'> Receiver of DNS responses
+DNS Caches: Positive and negative caches.</t>
+
+<t hangText='Trust Anchor Manager :'> database of trust anchors, manages trust
+DNSSEC Validation Engine: follows local policy to approve data.</t>
+</list></t>
+
+<t><list style="letters">
+
+<t>Time Source -&gt; DNSSEC Validation Engine
+Current time upon request, in appropriate time zone setting</t>
+
+<t>Cryptographic Libraries-&gt; DNSSEC Validation Engine
+Supplies code to perform math, the engine determines the
+DNSSEC Security Algorithms supported</t>
+
+<t>DNS Caches &lt;- DNSSEC Validation Engine
+Enter the results of a validation (positive data, negative failures)</t>
+
+<t>DNS Caches -&gt; DNSSEC Validation Engine
+Stored keys, etc., used in building a chain of trust</t>
+
+<t>DNS Messages -&gt; DNSSEC Validation Engine
+DNS Responses needed validation</t>
+
+<t>Trust Anchor Management &amp; Storage -> DNSSEC Validation Engine
+Supplies trust anchor information when needed.</t>
+
+<t>Trust Anchor Management &amp; Storage &lt;- DNSSEC Validation Engine
+Information to update the trust anchor store, resulting from automated
+update requests.</t>
+
+<t>Trust Anchor Management &amp; Storage -&gt; DNS Messages
+Requests made to manage trust anchors.</t>
+
+<t>Not shown - Name Server Process Management interfaces to elements,
+handling of Checking Disabled request, responses, as well as all
+API requests made of the name server.</t>
+
+</list></t>
+
+</section>
+
 <section anchor="sec-time" title="Time derivation and absence of Real Time Clock">
 
 <t>With M2M communication some devices are not expecting to embed Real
@@ -520,8 +604,8 @@ requirements is fulfilled by the requirement to add a Trust Anchor in
 
 <section title="Cryptography Deprecation">
 
-<t>As mentioned in <xref target="I-D.ietf-ipsecme-rfc4307bis"/> and
-<xref target="I-D.ietf-ipsecme-rfc7321bis"/> cryptography used one day is
+<t>As mentioned in <xref target="RFC8247"/> and
+<xref target="RFC8221"/> cryptography used one day is
 expected over the time to be replaced by new and more robust
 cryptographic mechanisms. In the case of DNSSEC signature protocols are
 likely to be updated over time. In order to anticipate the sunset of one
@@ -644,7 +728,8 @@ Wouter and Evan Hunt.</t>
 <?rfc include="reference.RFC.4035.xml"?>
 <?rfc include="reference.RFC.5011.xml"?>
 <?rfc include="reference.RFC.6975.xml"?>
-
+<?rfc include="reference.RFC.8247.xml"?>
+<?rfc include="reference.RFC.8221.xml"?>
     </references>
 
     <references title="Informational References">
@@ -662,8 +747,7 @@ Wouter and Evan Hunt.</t>
 <?rfc include="reference.RFC.7583.xml"?>
 <?rfc include="reference.RFC.7646.xml"?>
 <?rfc include="reference.I-D.ietf-dnsop-rfc5011-security-considerations.xml"?>
-<?rfc include="reference.I-D.ietf-ipsecme-rfc4307bis.xml"?>
-<?rfc include="reference.I-D.ietf-ipsecme-rfc7321bis.xml"?>
+
     </references>
   </back>
 </rfc>
