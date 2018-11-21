@@ -166,34 +166,32 @@ This is a conceptual block diagram of the elements involved with
 DNSSEC validation. This is not meant to be an architecture for code,
 this is meant to be a framework for discussion and explanation.
 
-```
 
-+-------------+  +---------------+
-|             |  |               |
-| Time Source |  | Cryptographic |
-|             |  |   Libraries   |
-|             |  |               |
-+-------------+  +---------------+
-       |                 |
-       v                 v
-+--------------------------------+   +--------------+
-|                                |   |              |
-|                                |<--| Trust Anchor |
-|    DNSSEC Validation Engine    |   |   Manager &  |
-|                                |-->|   Storage    |
-|                                |   |              |
-+--------------------------------+   +--------------+
-      ^ |               ^                   |
-      | v               |                   |
-+-------------+  +---------------+          |
-|             |  |               |          |
-| DNS Caches  |  | DNS Messages  |<---------+
-|             |  |               |
-+-------------+  +---------------+
+    +-------------+  +---------------+
+    |             |  |               |
+    | Time Source |  | Cryptographic |
+    |             |  |   Libraries   |
+    |             |  |               |
+    +-------------+  +---------------+
+           |                 |
+           v                 v
+    +--------------------------------+   +--------------+
+    |                                |   |              |
+    |                                |<--| Trust Anchor |
+    |    DNSSEC Validation Engine    |   |   Manager &  |
+    |                                |-->|   Storage    |
+    |                                |   |              |
+    +--------------------------------+   +--------------+
+          ^ |               ^                   |
+          | v               |                   |
+    +-------------+  +---------------+          |
+    |             |  |               |          |
+    | DNS Caches  |  | DNS Messages  |<---------+
+    |             |  |               |
+    +-------------+  +---------------+
+   
+         Figure 1: DNSSEC Validator Description
 
-      Figure 1: DNSSEC Validator Description
-
-```
 
 Time Source 
 : The wall clock time provides the DNSSEC Validation Engine the current
