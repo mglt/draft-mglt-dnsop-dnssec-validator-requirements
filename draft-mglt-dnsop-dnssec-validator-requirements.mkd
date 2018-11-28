@@ -1,7 +1,7 @@
 ---
 title: DNSSEC Validator Requirements
 abbrev: DNSSEC Validator Requirements
-docname: draft-mglt-dnsop-dnssec-validator-requiremnets-08
+docname: draft-mglt-dnsop-dnssec-validator-requirements-07
 
 
 area: operational
@@ -33,7 +33,7 @@ author:
         email: daniel.migault@ericsson.com
       -
         ins: E. Lewis
-        name: Edouard Lewis
+        name: Edward Lewis
         org: ICANN
         street: 
         -
