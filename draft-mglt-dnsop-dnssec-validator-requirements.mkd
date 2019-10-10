@@ -1,7 +1,7 @@
 ---
-title: DNSSEC Validator Requirements
-abbrev: DNSSEC Validator Requirements
-docname: draft-mglt-dnsop-dnssec-validator-requirements-07
+title: Operational recommendations for management of DNSSEC Validator
+abbrev: DNSSEC Validator operational recommendations
+docname: draft-mglt-dnsop-dnssec-validator-requirements-08
 
 
 area: operational
@@ -75,9 +75,11 @@ The DNS Security Extensions define a process for validating received
 data and assert them authentic and complete as opposed to
 forged.  
 
-This document describes what is needed in implementations to
-make the validation process manageable  Considerations for accurate time
-as well as management of the trust anchor store.
+This document is focused on operational recommendations that DNSSEC
+validators operators SHOULD put in place in order to implement
+sufficient Trust that makes DNSSEC validation output accurate. The
+recommendations described in this document include, provisioning
+mechanisms as well as monitoring and management mechanisms. 
       
 --- middle
 
@@ -100,8 +102,8 @@ signature of a Resource Record Set (RRset). The signature validation
 involves among other parameters a DNSKEY Resource Record (RR) and RRSIG
 RR and the RRset itself. The signature validation process results in
 assertion that the owner of the private part of the public key contained
-in the DNSKEY RR has effectively published the RRset. The binding between
-the private key and the RRset is provided by the trust in the
+in the DNSKEY RR has effectively published the RRset. The binding
+between the private key and the RRset is provided by the trust in the
 cryptographic algorithm. 
 
 * Trust: Signature Validation results in asserting a RRset is accurately
@@ -121,23 +123,23 @@ validated and trusted trusted during the time indicated by its TTL.
 
 A threat associated to the Signature Validation could consist in a RRSet
 maliciously forged to be validated by a trusted DNSKEY RR. Such threat
-mostly rely on the use of weak cryptography by the authoritative server,
-and the DNSSEC validator has little means to prevent such threats. 
+mostly relies on the use of weak cryptography by the authoritative
+server, and the DNSSEC validator has little means to prevent such
+threats. 
 
-The document considers instead the threat associated to the
-establishment of the trust where a  DNSKEY RR is maliciously
-established. This may be through a weakness in the authentication of
-changes to the zone administration database, allowing a malicious key to
-be added and then signed according to the DNSSEC process. Once this is
-discovered to have happened, other data validated via such a key should
-be called into question.  
+The document considers instead the threats associated to the
+establishment of the trust where a DNSKEY RR is maliciously established.
+This may be through a weakness in the authentication of changes to the
+zone administration database, allowing a malicious key to be added and
+then signed according to the DNSSEC process. Once this is discovered to
+have happened, other data validated via such a key should be called into
+question.  
 
-This document is focused on the necessary mechanisms that DNSSEC
-validators should implement in order to implement sufficient Trust that
-makes DNSSEC validation output accurate. The mechanisms described in
-this document include, provisioning mechanisms as well as monitoring and
-management mechanisms that enables an administrator to validate the
-validity of the DNSSEC validation output. 
+This document is focused on operational recommendations that DNSSEC
+validators operators SHOULD put in place in order to implement
+sufficient trust that makes DNSSEC validation output accurate. The
+recommendations described in this document include, provisioning
+mechanisms as well as monitoring and management mechanisms. 
 
 The mechanisms provided are designed in accordance of the DNSSEC trust
 model as to meet the current operations of DNSSEC. Such trust model is
@@ -223,14 +225,14 @@ considered trusted (or untrusted) for its associated TTL. DNS Caches
 contain RRsets that may contain information requested by the
 application (RRset of type AAAA for example) as well as RRset necessary
 to accurately validate the RRsets (RRsets of type DNSKET or RRSIG for
-example).  It also worth noticing that RRset validated with DNSSEC or
+example). It also worth noticing that RRset validated with DNSSEC or
 RRset that are not validated with DNSSEC fill the DNS Cache with the
 same level of trust.  
 
 Trust Anchor Manager 
 : The database of trust anchors associated to database management
 processes. This function provides the DNSSEC Validation Engine Trust
-Anchor information when needed. When TA needs to  be updated, the Trust
+Anchor information when needed. When TA needs to be updated, the Trust
 Anchor Manager is also responsible to handle the updating procedure.
 This includes sending DNS Messages as well as treating appropriately the
 DNS responses that have been accurately validated by the DNSSEC
@@ -258,9 +260,12 @@ are re-plugged the initial time is set to January 1 1970.  Other devices
 that have clocks that may suffer from time deviation. These devices
 cannot rely on their time estimation to perform DNSSEC validation.
 
-REQ1
-:  A DNSSEC validator MUST be provided means to update the time without
-relying on DNSSEC.
+Recommendation 1
+: DNSSEC validator operators MUST provide means to update the time
+without relying on DNSSEC when the DNSSEC validator is started. The
+DNSSEC validator MUST NOT start if the time synchronization does not
+succeed at start time. While operating, time MUST be regularly
+synchronized and error in synchronization MUST be logged.  
 
 Note that updating time in order to be able to perform DNSSEC
 validation may become a form of a chicken-and-egg problem when the NTP
@@ -269,6 +274,8 @@ the DNSSEC validator may not able to validate the DNSSEC queries.  In
 other words, the mechanisms may have to update the time over an unsecure
 DNSSEC resolution.
 
+Upon monitoring a large amount of unsuccessful DNSSEC validation,
+checking the time is one of the first element to check.  
 
 # Trust Anchor
 
@@ -292,13 +299,13 @@ managed keys. This includes adding, deleting, changing and inspecting.
 Beyond the scope of these requirements are the decision processes of
 authorized parties in placing trust in keys.
 
-REQ2
+Recommendation 2
 : A DNSSEC validator MUST check the validity of its Trust Anchors.  When
 a Trust Anchor cannot be verified, the DNSSEC validator MUST send a
 warning and SHOULD NOT start validating traffic without manual
 validation.
 
-REQ3
+Recommendation 3
 : A DNSSEC validator SHOULD be able to retrieve a Trust Anchor with
 bootstrapping mechanism.  Such mechanism' security MUST NOT be based on
 DNSSEC, but could instead include downloading a XML file from a trusted
@@ -399,14 +406,14 @@ well.
 The necessity to interact with the Trust Anchors lead to the following
 requirements:
 
-REQ4
+Recommendation 4
 :  A DNSSEC validator MUST store its Trust Anchors in a dedicated Trust
 Anchor Data Store. Such database MUST store information associated to
 each Trust Anchor status as well as the time the status has been noticed
 by the DNSSEC validator. Such database MUST be resilient to DNSSEC
 validator reboot.
 
-REQ5
+Recommendation 5
 : Trust Anchor states SHOULD at least consider those described in
 {{!RFC5011}} (Start, AddPend, Valid, Missing, Revoked, Removed).
 Additional states SHOULD also be able to indicate additional motivations
@@ -414,12 +421,12 @@ for revoking the Trust Anchor such as a Trust Anchor known to be
 corrupted, a Trust anchor miss published, or part of a regular roll over
 procedure.
 
-REQ6
+Recommendation 6
 : A DNSSEC validator MUST provide access to the Trust Anchor Data Base
 to authorized user only.  Access control is expected to be based on a
 least privileged principles.
 
-REQ7
+Recommendation 7
 : A trusted party MUST be able to add, remove a Trust Anchor in the
 Trust Anchor Data Store.
 
@@ -433,7 +440,7 @@ revoking a Trust Anchor that is known to be corrupted, the DNSSEC
 validator may be willing to flush all RRsets that depends on the Trust
 Anchor.
 
-REQ8
+Recommendation 8
 :  A DNSSEC validator MUST be able to flush the cached RRsets that rely
 on a Trust Anchor.
 
@@ -500,7 +507,7 @@ addition, the DNSSEC validator should also be able to provide a maximum
 values for TTLs. 
 
 
-REQ
+Recommendation 
 : DNSSEC Validator MUST be able to enforce TTL policies of RRsets
 based on the TTL of the KSK/ZSK. RRsets TTL SHOULD NOT exceed the KSK /
 ZSK initial TTL value. 
@@ -514,7 +521,7 @@ as well as specific actions details in section
 {{sec-ksk-zsk-data-store}} and section {{sec-ksk-zsk-dns-cache}}.  The
 monitoring requirements on KSK / ZSK are as follows:
 
-REQ9
+Recommendation 9
 :  A DNSSEC validator MUST log its KSK/ZSK in a dedicated KSK/ ZSK Data
 Base. Such database MUST store information associated to each KSK/ZSK
 status as well as the time the status has been noticed by the DNSSEC
@@ -523,12 +530,12 @@ that is the information stored in the Data Base MUST NOT be used to
 populate the cache, while it MAY be used as second factor verification,
 or audit for example.
 
-REQ10
+Recommendation 10
 : KSK/ZSK status and information SHOULD be monitored continuously and
 associated with their respective state as well as verified time.  These
 states and time SHOULD be resilient to reboot.
 
-REQ11
+Recommendation 11
 : KSK/ZSK states SHOULD at least consider those described in section 3.1
 of {{!RFC7583}} (Generated, Published, Ready, Active, Retired, Dead,
 Removed, Revoked ).  Additional states SHOULD also be able to indicate
@@ -571,13 +578,13 @@ However, if the KSK/ZSK are rolled over and RRSIG cannot be validated,
 it remains hard for the DNSSEC validator to determine whether the RRSIG
 cannot be validated or that RRSIG are invalid.  As a result:
 
-REQ14
+Recommendation 14
 : A trusted party MUST be able to indicate a DNSSEC validator that a KSK
 or a ZSK as Negative Trust Anchor. Such Trust Anchors MUST NOT be used
 for RRSIG validation and MUST be moved to the Trust Anchor Data Store,
 so the information become resilient to reboot.
 
-REQ15
+Recommendation 15
 : A trusted party MUST be able to indicate a DNSSEC validator that a
 KSK/ZSK is known "back to secure".
 
@@ -614,10 +621,10 @@ KSK / ZSK itself.
 
 As a result, the following requirements are expected:
  
-REQ16
+Recommendation 16
 : A DNSSEC validator MUST be able to flush the cached KSK/ZSK.
 
-REQ17
+Recommendation 17
 : A DNSSEC validator SHOULD be able to flush the cached RRsets associated
 to a KSK/ZSK.
 
@@ -637,12 +644,12 @@ However, a DNSSEC validator is not able to determine other than by
 trying whether a signature scheme is supported by the authoritative
 server.
 
-In order for a DNSSEC validator to safely deprecate one signature scheme
-the following requirement should be fulfilled.
+To safely deprecate one signature scheme, the DNSSEC validator operator
+is expected to follow the recommendation below:
 
-REQ18
-: A DNSSEC validator SHOULD be able to request the signature scheme
-supported by an authoritative server.
+Recommendation 18
+: A DNSSEC validator operator SHOULD regularly request and monitor the
+signature scheme supported by an authoritative server.
 
 #  Reporting
 
@@ -654,27 +661,34 @@ secure DNS resolution and as such protect its stub client. An invalid
 response may be the result of an attack or a misconfiguration, and the
 DNSSEC validator may play an important role in sharing this information.
 
-REQ19
-: A DNSSEC validation SHOULD be able to report the unavailability of the
-DNSSEC service.
+Recommendation 19
+: DNSSEC validation operator SHOULD monitor and report the
+unavailability of the DNSSEC service.
 
-REQ20
-: A DNSSEC validator SHOULD be able to report a invalid DNSSEC
+Recommendation 20
+: DNSSEC validator operator SHOULD monitor and report an invalid DNSSEC
 validation.
 
 #  IANA Considerations
 
-   There are no IANA consideration for this document.
+There are no IANA consideration for this document.
 
 #  Security Considerations
 
-The requirements listed in this document aim at providing the DNSSEC
-validator appropriated information so DNSSEC validation can be
-performed.  On the other hand, providing inappropriate information can
-lead to misconfiguring the DNSSEC validator, and thus disrupting the
-DNSSEC resolution service.  As a result, enabling the setting of
-configuration parameters by a third party may open a wide surface of
-attacks.
+The recommendations listed in this document have two goals. First
+ensuring the DNSSEC validator has appropriated information to
+appropriately perform DNSSEC validation. Second, monitoring the
+necessary elements that would enable a DNSSEC validator operator to ease
+a potential analysis.  The recommendations provide very limited ability
+for a DNSSEC validator operator to alter or directly interfere on the
+validation process and the main purpose in providing the recommendations
+was to let the protocol run as much as possible. Providing inappropriate
+information can lead to misconfiguring the DNSSEC validator, and thus
+disrupting the DNSSEC resolution service.  As a result, enabling the
+setting of configuration parameters by a third party may open a wide
+surface of attacks. In addition, such changes may lead to unexpected
+corner cases that would result in making analysis and trouble shooting
+very hard.  
 
 As an appropriate time value is necessary to perform signature check, an
 attacker may provide rogue time value to prevent the DNSSEC validator to
