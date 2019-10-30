@@ -103,8 +103,12 @@ involves among other parameters a DNSKEY Resource Record (RR) and RRSIG
 RR and the RRset itself. The signature validation process results in
 assertion that the owner of the private part of the public key contained
 in the DNSKEY RR has effectively published the RRset. The binding
-between the private key and the RRset is provided by the trust in the
-cryptographic algorithm. 
+between the private key and the RRset is provided by the trust that the
+private key used to generate the signature is known only to the
+authorized party.  (It's more likely that the key is "exposed" or
+"guessed" than the algorithm "becomes broken.")
+
+
 
 * Trust: Signature Validation results in asserting a RRset is accurately
 validated if there is sufficient trust that the owner of the private key
@@ -118,8 +122,31 @@ Validation. As TAs need to be managed over time, the trust also concerns
 the management procedure of the TA. This is the main concern of this
 document.
 
+Data's authenticity and integrity is tied to the operator of the key
+that generates the signature.  It is conceivable that a validator could
+"know" the keys of each data source, but this is not practical at large
+scale.  To counter this, DNSSEC relied on securely chaining keys in a
+manner isomorphic to the way names are delegated.  Keys for a name will
+"vouch for" keys at a name delegated via the signing of a DS resource
+record set.
+
+Using keys to vouch for keys, recursively, works when a managable set of
+key to name associations are determed to be "trusted" - and are called
+trust anchors.  In DNSSEC, a validator needs one or more Trust Anchors
+from which to grow chains of verified keys.
+
+With operational experience, a twist has emerged.  More often, to date,
+failed validation is due to operator error and not an attempt to forge
+data.  As a temporary solution to operational errors, the concept of
+Negative Trust Anchors [RFC7646] has been invented.  A negative trust
+anchor instructs a validator to ignore the presence of keys for a name,
+reacting as if the name is unsigned.
+
+Both Trust Anchors and Negative Trust Anchors are managed via a Trust
+Anchor Store.
+
 Once accurately validated the RRset is assumed to be accurately
-validated and trusted trusted during the time indicated by its TTL. 
+validated and trusted during the time indicated by its TTL. 
 
 A threat associated to the Signature Validation could consist in a RRSet
 maliciously forged to be validated by a trusted DNSKEY RR. Such threat
@@ -161,6 +188,11 @@ Trust Anchor Data Store
 : a module (of code) implementing functions related to the trust anchors
 used by the validator.  This is essentially a database allowing access,
 monitoring of, and changes to trust anchors.
+
+DNSSEC Resolver Operator (DRO)
+: The operator providing DNSSEC validation service and managing DNSSEC
+validators
+
 
 #  DNSSEC Validator Description {#sec-dnssec-val-desc}
 
@@ -236,8 +268,10 @@ Anchor information when needed. When TA needs to be updated, the Trust
 Anchor Manager is also responsible to handle the updating procedure.
 This includes sending DNS Messages as well as treating appropriately the
 DNS responses that have been accurately validated by the DNSSEC
-Validator Engine. This will end up in the DNSSEC Validator Engine
-pushing new TAs. 
+Validator Engine.  This will require the DNSSEC Validator to update
+Trust Anchor information, whether via methods like Automated Updates of
+DNSSEC Trust Anchors (RFC 5011), management of Negative Trust Anchors,
+or other, possibly not yet defined, means.
 
 DNSSEC Validation Engine
 : follows local policy to approve data. The approved data is returned to
@@ -252,6 +286,47 @@ Not shown - Name Server Process Management interfaces to elements,
 handling of Checking Disabled request, responses, as well as all API
 requests made of the name server.
 
+# Operating DNSSEC validators
+
+DNSSEC operators needs to be able to enable DNSSEC validation with
+sufficient confidence they will not be held responsible in case their
+resolver does not validate the DNSSEC response. The minimization of
+these risks is provided by setting automated procedures, that:
+
+Start-up health checks
+: performs configuration as well as environment checks at startup, and
+does not start resolving upon this information being successfully
+validated. The start-up health checks ensure the DNSSEC resolver can
+appropriately operate. It is strongly RECOMMENDED that these checks are
+highly automated.   
+
+
+Running health checks
+: Configuration of the DNSSEC resolver may evolve as well as the
+environment it is operating in. As a result, health checks needs to be
+performed regularly while the DNSSEC resolver operates. Some events may
+be reported with various level of severity. The DNSSEC operator may
+take various action depending on the report as well as its occurrence.
+It is RECOMMENDED these checks are automated and performed at regular
+intervals. The document also RECOMMENDS actions to be taken by the
+DNSSEC resolver operator. In some cases, the action may be automated,
+while in other cases, a validation from the DNSSEC MAY be needed.   
+
+On demand operation:
+: An operator may be willing to perform on-demand health-checks in order
+to monitor closely the behavior of its platform of DNSSEC Resolver.
+Individual checks may performed when a specific operation occurs, such
+as for example a key roll over occurs, and the operator want to closely
+follow the behavior of its platform. Even if the check may be similar to
+Running health checks, it is not a minor operation to change the
+configuration of the monitoring/reporting of the platform. As a result,
+there is a need for an operator to be able to perform on-demand checks.
+Additional tests may be needed in order to investigate the root cause of
+an error causing the DNSSEC validation to fail. Although the tests MAY
+be automated to report a diagnostic to the resolver operator, the
+necessary actions taken MAY require a confirmation from the DNSSEC
+resolver operator.  
+
 #  Time deviation and absence of Real Time Clock
 
 With M2M communication some devices are not expecting to embed Real Time
@@ -260,12 +335,16 @@ are re-plugged the initial time is set to January 1 1970.  Other devices
 that have clocks that may suffer from time deviation. These devices
 cannot rely on their time estimation to perform DNSSEC validation.
 
-Recommendation 1
+Time synchronization may be performed manually, but for the sake of
+operations it is strongly RECOMMENDED to automate the time
+synchronization on each resolver. In addition, it is RECOMMENED the
+operator regularly proceed to sanity checks of its resolver and  
+
+Start-up recommendation 
 : DNSSEC validator operators MUST provide means to update the time
 without relying on DNSSEC when the DNSSEC validator is started. The
 DNSSEC validator MUST NOT start if the time synchronization does not
-succeed at start time. While operating, time MUST be regularly
-synchronized and error in synchronization MUST be logged.  
+succeed at start time. 
 
 Note that updating time in order to be able to perform DNSSEC
 validation may become a form of a chicken-and-egg problem when the NTP
@@ -274,64 +353,105 @@ the DNSSEC validator may not able to validate the DNSSEC queries.  In
 other words, the mechanisms may have to update the time over an unsecure
 DNSSEC resolution.
 
-Upon monitoring a large amount of unsuccessful DNSSEC validation,
-checking the time is one of the first element to check.  
+Running recommendation
+: While operating, time MUST be regularly synchronized. The DNSSEC not
+being able to synchronize its time MUST report an error. Upon a number
+of consecutive errors, the Resolver operator is expected to investigate
+the further the availability or the connectivity of the NTP server. When
+time synchronisation succeeds, the time difference between the local
+time and the reference time SHOULD be reported. Upon too large time
+derivation, the resolver operator is expected to address this issue. 
 
-# Trust Anchor
 
-## Trust Anchor Bootstrapping
+On-demand recommendation
+: An DNSSEC resolver operator MUST be able to request the time of the
+DNSSEC resolver. It is RECOMMENDED to check the time of DNSSEC resolver
+for any investigation associated to a signature fail. 
 
-A validator needs to have trust anchors or it will never be able to
-construct a chain of trust. Trust anchors are defined by DNSSEC to be
-keys that are inherently trusted, configured by authorized parties, in
-the validator. The configuration can be via an automated process, such
-as Automated Updates of DNSSEC Trust Anchors {{!RFC5011}},
-{{!I-D.ietf-dnsop-rfc5011-security-considerations}}, or via manual
-process.
+# Trust Anchor Store
 
-An implementation of a validator needs to allow an operator to choose
-any automated process supported by the validator.  (No requirements are
-stated about what processes to support, only one is standardized to
-date.)  An implementation needs to also afford the operator the ability
-to override or manage via a purely manual process, the storage of
-managed keys. This includes adding, deleting, changing and inspecting.
+A Trust Anchor store will maintain associations between domain names and
+keys (whether stored as in a DNSKEY resource record or a DS resource
+record) and domain names whose key are to be ignored (negative trust
+anchors).  The Trust Anchor store is essentially a simple database,
+storing the positive trust anchors and negative trust anchors and
+enabling changes to the lists. Management of the trust anchors can be
+done manually or in an automated way. 
 
-Beyond the scope of these requirements are the decision processes of
-authorized parties in placing trust in keys.
+Management of Trust Anchors can be subdivided into two sub-categories:
 
-Recommendation 2
-: A DNSSEC validator MUST check the validity of its Trust Anchors.  When
-a Trust Anchor cannot be verified, the DNSSEC validator MUST send a
-warning and SHOULD NOT start validating traffic without manual
-validation.
+* 1) Trust Anchor bootstrapping, that is the ability to check the
+validity of Trust Anchor the when the DNSSEC resolver is started.
+* 2) Trust Anchor update, that is the ability for the DNSSEC resolver
+operator  to update the Trust Anchors.  The reasons for updating a key
+are when a key role over occurs or when a negative trust anchor needs to
+be placed.  
+* 3) Trust Anchor reporting, that is the ability to the DNSSEC
+resolver operator to consult the Trust Anchors  used by the DNSSEC
+resolver 
 
-Recommendation 3
-: A DNSSEC validator SHOULD be able to retrieve a Trust Anchor with
-bootstrapping mechanism.  Such mechanism' security MUST NOT be based on
-DNSSEC, but could instead include downloading a XML file from a trusted
-URL, or a PKIX certificate.
+## Trust Anchor Bootstrapping {#bootstraping}
+
+The bootstrapping process enables a DRO to start a DNSSEC resolver from
+a configuration file, that reflects the trust model of the DRO.
+Typically, the DRO may define one or multiple domains he trusts as entry
+point. The bootstrapping aspect includes a mechanism to retrieve the
+corresponding value of the Trust Anchor. Doing so in an automated way,
+reduces the various versions of the configuration of the DNSSEC
+resolvers. In case the DRO provides the Trust Anchor value, such
+mechanism could confirm the validity of the Trust Anchor.  
+
+It is highly RECOMMENDED the DNSSEC resolver operator does not blindly
+rely on the Trust Anchors provided in a configuration when the resolver
+is started, but instead that validity checks are performed regarding the
+Trust Anchors being used. 
+
+We do not provide recommendations regarding the number of Trust Anchors
+a DNSSEC resolver operator needs to configure its DNSSEC resolver with.
+There are many reasons a DNSSEC resolver operator may be willing to
+consider multiple Trust Anchors as opposed to a single Root Zone Trust
+Anchor. However, it is NOT RECOMMENDED to add TA that do not provide
+bootstrapping mechanisms.  
+
+In fact it is not always possible to build a trusted delegation between
+the Root Zone and any sub zone.  This may happen for example if one of
+the upper zones does not handle the secure delegation or improperly
+implement it.  A DS RRset may not be properly filled or its associated
+signature cannot be validated.  As the chain of trust between a zone and
+the root zone may not be validated, the DNSSEC validation for the zone
+requires a Trust Anchor.  Such DNS(SEC) resolutions may be critical for
+infrastructure management.  A company "Example" may, for example,
+address all its devices under the domain example.com and may not want
+disruption to happen if the .com delegation cannot be validated for any
+reason.  Such companies may provision there DNSSEC validator with the
+Trust Anchor KSK for the zone example.com in addition to the regular
+DNSSEC delegation.  Similarly some some domains may present different
+views such as a "private" view and a "public view".  These zones may
+have some different content, and may use a different KSK for each view.
 
 Although some bootstrapping mechanisms to securely retrieve publish
-{{!RFC7958}} and retrieve {{UNBOUND-ANCHOR}} the Root Zone Trust Anchor
+{{?RFC7958}} and retrieve {{?UNBOUND-ANCHOR}} the Root Zone Trust Anchor
 have been defined, it is believed these mechanisms should be extended to
-other KSKs or Trust Anchors. In fact it is not always possible to build
-a trusted delegation between the Root Zone and any sub zone. This may
-happen for example if one of the upper zones does not handle the secure
-delegation or improperly implement it. A DS RRset may not be properly
-filled or its associated signature cannot be validated. As the chain of
-trust between a zone and the root zone may not be validated, the DNSSEC
-validation for the zone requires a Trust Anchor. Such DNS(SEC)
-resolutions may be critical for infrastructure management. A company
-"Example" may, for example, address all its devices under the domain
-example.com and may not want disruption to happen if the .com delegation
-cannot be validated for any reason. Such companies may provision there
-DNSSEC validator with the Trust Anchor KSK for the zone example.com in
-addition to the regular DNSSEC delegation.  Similarly some some domains
-may present different views such as a "private" view and a "public
-view".  These zones may have some different content, and may use a
-different KSK for each view.
+other KSKs or Trust Anchors.   
 
-### The IANA managed root zone KSK
+Start-up recommendation 
+: It is RECOMMENDED DNSSEC resolver operators only rely on Trust Anchors
+that provide a bootstrapping mechanism. It is NOT RECOMMENDED to add a
+Trust Anchor that does not provide such mechanism. 
+
+Start-up recommendation 
+: DNS resolver MUST validate the Trust Anchors before starting the
+DNSSEC resolver, and a failure of TA validity check MUST prevent the
+DNSSEC resolver to be started. Validation of the Trust Anchor includes
+coherence between out-out band values, values stored in the DNS as well
+as corresponding DS RRsets. 
+
+
+###  IANA Trust Anchor Bootstrapping
+
+For validators that may be used on the global public Internet (with "may
+be" referring to general purpose, general release code), handling the
+IANA managed root zone KSK trust anchor is a consideration.
 
 The IANA managed root zone KSK is an operationally significant trust
 point in the global public Internet. Attention to the trust anchor for
@@ -358,91 +478,189 @@ Because of this, it is recommended that implementations make the root
 zone trust anchor obvious to the operator while still enabling
 configuration of general trust points.
 
-## Trust Anchor Data Store
 
-When DNSSEC validator are running and a Trust Anchor KSK roll over is
-ongoing, a network administrator or any trust party may be willing to
-check whether the new published keys are being stored in a Trust Anchor
-Data Store with an appropriated status. Such inspection aims at
-detecting an non successful Trust Anchor roll over before traffic is
-being rejected. When a new Trust Anchor has not been considered by the
-DNSSEC validator, a trusted party may be able to provision the DNSSEC
-validator with the new Trust Anchor, and eventually may remove the
-revoked Trust Anchor.
+## Trust Anchor Update 
 
-While using a Trust Anchor that has been removed results in the DNSSEC
-validator rejecting multiple legitimate responses, the consequences
-associated to accepting a rogue Trust Anchor as a legitimate Trust
-Anchor are even worst. Such attacks would result in an attacker
-taking control of the entire naming space behind the Trust Anchor. In
-the case of the Root Zone KSK, for example, almost all name space would
-be under the control of the attacker. In addition, to the name space,
-once the rogue Trust Anchor is configured, there is little hope the
-DNSSEC validator be re-configured with the legitimate Trust Anchor
-without manual intervention. As a result, it is crucial to cautiously
-handle operations related to the Trust Anchor provisioning. Means must
-be provided so network administrator can clearly diagnose the reason a
-Trust Anchor is not valid to avoid accepting a rogue Trust Anchor
-inadvertently.
+There are two kind of Trust Anchors: Positive Trust Anchors and Negative
+Trust Anchors. Updating the Trust Anchors reflects the evolution of the
+trust and needs to be operated in a reliable and trusted way. 
 
-DNSSEC may also be used in some private environment. Corporate networks
-and home networks, for example, may want to take advantage of DNSSEC for
-a local scope network. Typically, a corporate network may use a local
-scope Trust Anchor to validate DNS RRsets provided by authoritative
-DNSSEC server in the corporate network. This use case is also known as
-the "split-view" use case.  These RRsets within the corporate network
-may differ from those hosted on the public DNS infrastructure.  Note
-that using different Trust Anchor for a given zone may expose a zone to
-signature invalidation. This is especially the case for DNSSEC
-validators that are expected to flip-flop between local and public
-scope. How validators have to handle the various provisioned Trust
-Anchors is out of scope of the document.
+A DRO configures its resolver with Trust Anchors associated to specific
+domains. The configuration may be updated by adding new domains for
+which the corresponding Trust Anchors needs to be retrieved using an
+automated bootstrapping procedure. This case is not considered in this
+section and is instead addressed in the bootstrapping section
+{{bootstrapping}}. 
 
-Home network may use DNSSEC with TLDs or associated domain names that
-are of local scope and not even registered in the public DNS
-infrastructure. This requires the ability to manage the Trust Anchor as
-well.
+On the other hand, the value associated to the trust anchor may be
+updated over time which is part of the maintenance of the configuration
+and needs to be performed by the DNSSEC resolver without any
+intervention of the DNSSEC resolver operator. This case is considered in
+section {{automated-update-ta}}
 
-The necessity to interact with the Trust Anchors lead to the following
-requirements:
+A DRO MUST regularly check the trust anchor used by the DNSSEC resolver
+is up-to-date. Note that by retrieving in an automated way the value of
+the trust anchor, the value is removed from the configuration. This
+means that the value of the trust anchor is only handled by the DNSSEC
+Resolver. If the value was stored in the configuration file, further
+check would have been needed in order to check the write operation had
+been successfully performed. In order to check if the Trust Anchors
+updates have been successfully performed, the DRO needs to be able to
+request the used Trust Anchor used by the resolver and match that value
+to the one provided by the bootstrapping mechanism. This is the scope of
+section {{automated-ta-check}}. The ability to check the used Trusted
+Anchor is also useful to follow-up the procedure when a specific Trust
+Anchor is rolled over.  
 
-Recommendation 4
-:  A DNSSEC validator MUST store its Trust Anchors in a dedicated Trust
-Anchor Data Store. Such database MUST store information associated to
-each Trust Anchor status as well as the time the status has been noticed
-by the DNSSEC validator. Such database MUST be resilient to DNSSEC
-validator reboot.
+A DRO MAY regularly report the Trust Anchor used to the authoritative
+server. This would at least provide insight to the authoritative server
+and provide him some context before moving a key roll over further. This
+is the scope of the section {{automated-reporting}}. 
 
-Recommendation 5
-: Trust Anchor states SHOULD at least consider those described in
-{{!RFC5011}} (Start, AddPend, Valid, Missing, Revoked, Removed).
-Additional states SHOULD also be able to indicate additional motivations
-for revoking the Trust Anchor such as a Trust Anchor known to be
-corrupted, a Trust anchor miss published, or part of a regular roll over
-procedure.
+When the DNSSEC Resolver is not able to validate signatures because a
+key or DS has been published with an error, the DNSSEC Operator MAY
+temporarily disable the signature check for that key the time the error
+is addressed. This is performed using Negative Trust Anchor and is the
+scope of section {{negative-ta}}. 
 
-Recommendation 6
-: A DNSSEC validator MUST provide access to the Trust Anchor Data Base
-to authorized user only.  Access control is expected to be based on a
-least privileged principles.
+### Automated Updates to DNSSEC Trust Anchors {#automated-update-ta}
 
-Recommendation 7
-: A trusted party MUST be able to add, remove a Trust Anchor in the
-Trust Anchor Data Store.
+Trust is inherently a matter of an operations policy. As such, an
+operator of a validator will need to be able to update the list of Trust
+Anchors.  
+
+Updates of these Trust Anchors are not expected to be handled manually
+by the DRO. Instead, there is an existing method for managing positive
+trust anchors, documented in "Automated Updates to DNSSEC Trust Anchors"
+{{!RFC 5011}} {{I-D.ietf-dnsop-rfc5011-security-considerations}}. This,
+and potential updates to it, are recommended to be supported in general
+purpose trust anchor stores.
+
+It is NOT RECOMMENDED that Trust Anchor is handled by the DNSSEC
+Resolver Operator. This introduces a potentially huge vector for
+configuration errors, but due to human intervention as well as potential
+misunderstanding of ongoing operations. 
+
+## Automated Trust Anchor Check {#automated-check}
+
+Signaling Trust Anchor Knowledge in DNS Security Extensions (DNSSEC)"
+{{!RFC 8145}} provides the ability to query a resolver the DNS KEY used
+for the signature check. It is RECOMMENDED a DRO enables this channel to
+communicate the Trust Anchors used as opposed as opening a management
+interface to the resolver.  
+
+Checking a Trust Anchor includes validating DNSKEY RRsets and associated
+DS RRsets in the Resolver, on the DNS system as well as those obtained
+out-of-band. The check MUST includes some checks to evaluate if the
+mismatch result from an ongoing normal roll over, a potential
+emergency key roll over, failed roll over or any other envisioned
+cases. 
+
+Running recommendation
+:It is RECOMMENDED the DNSSEC Resolver validator regularly checks the
+Trust Anchors used by the resolvers are coherent with those provided by
+the bootstrapping mechanisms.  This coherence also includes coherence
+with the associated DS RRset when possible. A Trust Anchor mismatch MUST
+raise an alert. Conflicts are not inherently a problem as some keys may
+be withheld from distribution via the DNS.    
+
+
+Note that checking the Trust Anchor used by a resolver may be performed
+using a management interface. This is not the RECOMMENDED way as it may
+open the resolver to other vulnerabilities and provides privileged
+access to a potential attacker. 
+
+Note also that {{!RFC8145}} does not only concerns Trust Anchor but is
+instead generic to DNSKEY RRsets. As a result, unless for the root zone,
+it is not possible to determine if the KSK/ZSK or DS is a Trust Anchor or a
+KSK/ZSK obtained from regular DNSSEC resolutions. 
+
+If the mismatch is due to a failed key roll-over, this SHOULD be
+considered as a bug by the DRO. The Resolver MUST
+be be restarted with updated Trust Anchor values.  
+
+
+On-demand recommendation
+: A DRO MUST be able to check the status of a Trust Anchor, that is its
+associated value. 
+
+## Automated Reporting of Trust Anchors {#automated-reporting}
+
+The purpose of reporting the currently used Trust Anchor for a domain
+name is to establish an informational channel between the resolver and
+the authoritative server. This data may not directly be useful for the
+DNSSEC Resolver, but instead to the authoritative server. In return it
+is likely the authoritative server will take the appropriated steps in
+operating the authoritative server and consider this information. As a
+result, 
+
+Running Recommendation
+: it is RECOMMENDED a DRO enables reporting to the authoritative server
+as specified in "Signaling Trust Anchor Knowledge in DNS Security
+Extensions (DNSSEC)" {{!RFC 8145}}  
+
+
+## Negative Trust Anchors {#nta}
+
+A DRO SHOULD be able to disable the validation from a Trust Anchor or a
+KSK/ZSK. This could be performed by a Negative Trust Anchor and the
+introduction of a Negative Trust Anchor consists in the only
+intervention related to Trust Anchors a DRO SHOULD be able to performed
+on a resolver. 
+
+"Definition and Use of DNSSEC Negative Trust Anchors" (RFC 7646) defines
+the ways Negative Trust Anchors are managed and SHOULD be followed by
+DROs. 
+
+Note that adding a Negative Trust Anchor only requires the domain name
+to be specified.
+
+A failure in signaling validation is associated to a mismatch between
+the key and the signature. For Trust Anchor as opposed as regular
+KSK/ZSK, the Trust Anchor is assumed to provided via other channel as
+well as though the DNS channel, and there is a high level of trust in
+the value used by the resolver for both the DS and DNSKEY RRsets. As a
+result, a Trust Anchor that is not able to validate appropriately the
+signatures is either an attack or a failure into the signing operation
+on the authoritative servers. In the case of Trust Anchor, there is
+likely a specific relation between the DNSSEC Resolevr Operator and the
+corresponding Authoritative server. The DRO is expected to confirm this
+off line before introducing the Negative Trust Anchor. This is likely to
+happen via a human confirmation. As a result here are the following
+recommendations:
+
+Running recommendation
+: DRO SHOULD monitor the number of signature failure associated to each
+Trust Anchor. These number are only hints and MUST NOT trigger automated
+insertion of NTA. 
+
+Upon a high rate of failure, the DNSSEC Resolve operator is expected to
+confirm the value of the Trust Anchor used by the resolver is correct
+and up-to-date. (see section {{automated-check}} with on demand check).
+Failed key roll over are not expected to happen a that point.  This
+could result in an emergency key roll over. It is RECOMMENDED the DNSSEC
+Resolver operator get a confirmation. The DRO could either flush the
+data in the cache associated to the TA or add a NTA.  This could result
+in a bad signing operation of the zone in which case the DRO SHOULD
+provide a NTA.   
+
+Note that issues associated to the DS RRSets of a TA MUST NOT generate
+any action from the DRO. 
 
 ## Interactions with the cached RRsets
 
-In addition when a Trust Anchor is revoked, the DNSSEC validator may
-behave differently if the revocation is motivated by a regular roll over
-operation or instead by revoking a Trust Anchor that is known as being
-corrupted. In the case the roll over procedure, is motivated by
-revoking a Trust Anchor that is known to be corrupted, the DNSSEC
-validator may be willing to flush all RRsets that depends on the Trust
-Anchor.
+The purpose of automated checks is to enable early detection of failed
+operations, which provides enough time to the DRO to react without any
+consequences. On the other hand, these checks MAY reveal as well that a
+rogue trust anchor has been placed and that the resolver is corrupted.
+In such cases the DRO MUST put the resolver off line for further
+investigation and re-start another instance of resolver and the Resets
+under the rogue Trust Anchor in the cache MUST be removed. 
 
-Recommendation 8
-:  A DNSSEC validator MUST be able to flush the cached RRsets that rely
-on a Trust Anchor.
+On-demand recommendation
+: the DRO MUST be able to flush the cached data associated to a Trust
+Anchor. 
+
 
 #  ZSK / KSK
 
@@ -455,6 +673,13 @@ it is not expected that the DNSSEC validator provides complex management
 facilities to address these issues as this will modify the DNS
 architecture and add complexity that is not proved to be beneficial. 
 
+As a result, recommendations are always associated to Running or On demand
+recommendations. The main difference between TA and KSK/ZSK is that the
+DRO does not necessarily have an out of band mechanism to retrieve the
+RRsets. As a result, the DRO has less information to determine and
+confirm what is happening. The default recommendation is to let things
+go.    
+
 ##  KSK/ZSK Data Store
 
 A number of reasons may result in inconsistencies between the RRsets
@@ -465,24 +690,24 @@ associated new RRSIG published in the authoritative zone, while DNSSEC
 validator may still cache the old value of the ZSK / KSK.  For a RRset
 not cached, the DNSSEC validator performs a DNSSEC query to the
 authoritative server that returns the RRset signed with the new KSK /
-ZSK.  The DNSSEC validator may not be able to retrieve the new KSK / ZSK
+ZSK. The DNSSEC validator may not be able to retrieve the new KSK / ZSK
 while being unable to validate the signature with the old KSK / ZSK.
 This either result in a bogus resolution or in an invalid signature
 check.  Note that by comparing the Key Tag Fields, the DNSSEC validator
 is able to notice the new KSK / ZSK used for signing differs from the
 one used to generate the received generated signature.  However, the
 DNSSEC validator is not expected to retrieve the new ZSK / KSK, as such
-behavior could be used by an attacker.  Instead, ZSK / ZSK key roll over
-procedure are expected to avoid such inconsistencies.
+behavior could be used by an attacker. Instead, ZSK / KSK key roll over
+procedures are expected to avoid such inconsistencies.
 
 Similarly, a KSK / ZSK roll over may be performed normally, that is as
 described in {{!RFC6781}} and {{!RFC7583}}. While the KSK / ZSK roll
 over is performed, there is no obligation to flush the RRsets in the
 cache that have been associated with the old key. In fact, these RRset
 may still be considered as trusted and be removed from the cache as
-their TTL timeout.  With very long TTL, these RRset may remain in the
+their TTL timeout.  With very long TTL, these RRsets may remain in the
 cache while the ZSK / KSK with a shorter TTL is no longer published nor
-in the cache.  In such situations, the purpose of the KSK / ZSK is to
+in the cache. In such situations, the purpose of the KSK / ZSK used to
 validate the data is considered trusted at the time it enters the cache,
 and such trust may remain after the KSK / ZSK is being rolled over.
 Note also that even though the data may not be associated to the KSK /
@@ -506,128 +731,33 @@ would at least reduce inconsistencies during regular KSK roll over. In
 addition, the DNSSEC validator should also be able to provide a maximum
 values for TTLs. 
 
-
-Recommendation 
-: DNSSEC Validator MUST be able to enforce TTL policies of RRsets
-based on the TTL of the KSK/ZSK. RRsets TTL SHOULD NOT exceed the KSK /
-ZSK initial TTL value. 
-
-The detection of a misbehaving KSK / ZSK mostly results from publication
-misconfigurations or an attack at the publication level. As a result, a
-primary focus is put on DNSSEC Validators monitoring KSK / ZSK with
-sufficient care to enable the network administrator to take the
-appropriated actions. Such actions could include out-of-band exchanges
-as well as specific actions details in section
-{{sec-ksk-zsk-data-store}} and section {{sec-ksk-zsk-dns-cache}}.  The
-monitoring requirements on KSK / ZSK are as follows:
-
-Recommendation 9
-:  A DNSSEC validator MUST log its KSK/ZSK in a dedicated KSK/ ZSK Data
-Base. Such database MUST store information associated to each KSK/ZSK
-status as well as the time the status has been noticed by the DNSSEC
-validator. Such database SHOULD be resilient to DNSSEC validator reboot,
-that is the information stored in the Data Base MUST NOT be used to
-populate the cache, while it MAY be used as second factor verification,
-or audit for example.
-
-Recommendation 10
-: KSK/ZSK status and information SHOULD be monitored continuously and
-associated with their respective state as well as verified time.  These
-states and time SHOULD be resilient to reboot.
-
-Recommendation 11
-: KSK/ZSK states SHOULD at least consider those described in section 3.1
-of {{!RFC7583}} (Generated, Published, Ready, Active, Retired, Dead,
-Removed, Revoked ).  Additional states SHOULD also be able to indicate
-additional motivations for revoking the KSK/ZSK such as a KSK/ZSK known
-to be corrupted, a KSK/ZSK miss published, or part of a regular roll
-over procedure.
+Running recommendation 
+: To limit the risks of incoherent data in the cache, it is RECOMMENDED
+DRO enforce TTL policies of RRsets based on the TTL of the KSK/ZSK.
+RRsets TTL SHOULD NOT exceed the KSK / ZSK initial TTL value. 
 
 
-## KSK ZSK Data Store and Trust Anchor Data Store {#sec-ksk-zsk-data-store}
+Running recommendation
+: It is RECOMMENDED a DRO reports the DNSKEY used to the authoritative
+server as performed for the TA (see section {{{automated-reporting}}) 
 
-A zone may have been badly signed, which means that the KSK or ZSK
-cannot validate the RRSIG associated to the RRsets. This may not be due
-to a key roll over, but to an incompatibility between the keys (KSK or
-ZSK) and the signatures.
+A DRO SHOULD monitor the number of validation failure associated to each
+ZSK/KSK and report when a threshold is met. By receiving an alert, the
+DRO MUST take an action only upon the confirmation from teh
+authoritative server. The main reason for contacting the authoritative
+server is that the DRO is not expected to have the history and sufficient
+information to differentiate the validation failure form an attack. 
 
-When such situation occurs, there is only a choice between not
-validating the RRsets or invalidating their signature. This is a policy
-design that needs to be taken by the network administrator. In other
-ways, flushing the RRset are not expected to address this issue.  Such
-KSK/ZSK are known as Negative Trust Anchors {{!RFC7646}}.
 
-With Negative Trust Anchor, the zone for a given time will be known as
-"known insecure".  The DNSSEC Validator is not expected to perform
-signature validation for this zone. It is expected that this
-information is associated to a Time To Live (TTL). Note that, this
-information may be used as an attack vector to impersonate a zone, and
-must be provided in a trusted way, by a trusted party.
-
-If a zone has been badly signed, the administrator of the authoritative
-DNS server may resign the zone with the same keys or proceed to an
-emergency key rollover.  If the signature is performed with the same
-keys, the DNSSEC Validator may notice by itself that RRSIG can be
-validated. On the other hand if a key rollover is performed, the newly
-received RRSIG will carry a new key id. Upon receiving a new key id in
-the RRSIG, the DNSSEC Validator is expected to retrieve the new ZSK/KSK.
-If the RRSIG can be validated, the DNSSEC validator is expected to
-remove the "known insecure" flag.
-
-However, if the KSK/ZSK are rolled over and RRSIG cannot be validated,
-it remains hard for the DNSSEC validator to determine whether the RRSIG
-cannot be validated or that RRSIG are invalid.  As a result:
-
-Recommendation 14
-: A trusted party MUST be able to indicate a DNSSEC validator that a KSK
-or a ZSK as Negative Trust Anchor. Such Trust Anchors MUST NOT be used
-for RRSIG validation and MUST be moved to the Trust Anchor Data Store,
-so the information become resilient to reboot.
-
-Recommendation 15
-: A trusted party MUST be able to indicate a DNSSEC validator that a
-KSK/ZSK is known "back to secure".
-
-## Interactions with cached RRsets {#sec-ksk-zsk-dns-cache}
-
-The key roll over procedure intends to ensure that the published RRsets
-can be validated with the KSK / ZSK stored in the various cache of the
-DNSSEC validators. As a consequence, the key roll over enables trusted
-data to be cached. However, the key roll over does not necessarily
-prevents that cached be always validated with the currently published
-key. In fact, a cached data may have been validated by the former key
-and remain in the cache while the former key has been rolled out. Such
-inconsistencies may be acceptable and correspond to the following trust
-model: the KSK / ZSK validate the cached data can be trusted at time T.
-There is no specific information that leads to considers that trust at
-time T is subject to doubts at current time, so the cached data remain
-trusted.
-
-While such inconsistencies may have little impact on end host DNSSEC
-validators, it may be different for large resolving platforms with
-downstream DNSSEC validators, and a DNSSEC validator may be willing to
-maintain its cached data consistent with the published KSK / ZSK. A
-trusted third party may willing to remove all cached RRsets that have
-been validated by the KSK/ZSK upon some specific states (revoked, or
-Removed for example), of after some time after the state is noticed. In
-this later case, only the RRset whose TTL has not expired yet would be
-flushed.
-
-On the other hand, when a KSK / ZSK is known to be corrupted, this state
-may affect the trust that has been established at time T. In such case,
-the DNSSEC validator may be willing to flush all cached data that has
-been validated by the currently known corrupted KSK / ZSK, including the
-KSK / ZSK itself.
-
-As a result, the following requirements are expected:
- 
-Recommendation 16
-: A DNSSEC validator MUST be able to flush the cached KSK/ZSK.
-
-Recommendation 17
-: A DNSSEC validator SHOULD be able to flush the cached RRsets associated
-to a KSK/ZSK.
-
+A DRO may collect additional information associated to various KSK/ZSK.
+This information may be useful to follow-up roll over when these happen
+and evaluate when a key roll over is not performed appropriately on the
+resolver side or on the authoritative server. It would provide some
+means to the DRO to take action with full knowledge without necessary
+asking for a confirmation. In other cases it could prevent invalidation
+to happen. These check may be performed for a limited subset of domains
+or generalized. The expected check are similar as those detailed for TA
+(see section {{automated-check}}).    
 
 # Cryptography Deprecation
 
