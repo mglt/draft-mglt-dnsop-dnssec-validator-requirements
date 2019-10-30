@@ -138,7 +138,7 @@ from which to grow chains of verified keys.
 With operational experience, a twist has emerged.  More often, to date,
 failed validation is due to operator error and not an attempt to forge
 data.  As a temporary solution to operational errors, the concept of
-Negative Trust Anchors [RFC7646] has been invented.  A negative trust
+Negative Trust Anchors {{!RFC7646}} has been invented.  A negative trust
 anchor instructs a validator to ignore the presence of keys for a name,
 reacting as if the name is unsigned.
 
@@ -270,7 +270,7 @@ This includes sending DNS Messages as well as treating appropriately the
 DNS responses that have been accurately validated by the DNSSEC
 Validator Engine.  This will require the DNSSEC Validator to update
 Trust Anchor information, whether via methods like Automated Updates of
-DNSSEC Trust Anchors (RFC 5011), management of Negative Trust Anchors,
+DNSSEC Trust Anchors {{!RFC5011}}, management of Negative Trust Anchors,
 or other, possibly not yet defined, means.
 
 DNSSEC Validation Engine
@@ -390,7 +390,7 @@ be placed.
 resolver operator to consult the Trust Anchors  used by the DNSSEC
 resolver 
 
-## Trust Anchor Bootstrapping {#bootstraping}
+## Trust Anchor Bootstrapping {#boot}
 
 The bootstrapping process enables a DRO to start a DNSSEC resolver from
 a configuration file, that reflects the trust model of the DRO.
@@ -430,7 +430,7 @@ views such as a "private" view and a "public view".  These zones may
 have some different content, and may use a different KSK for each view.
 
 Although some bootstrapping mechanisms to securely retrieve publish
-{{?RFC7958}} and retrieve {{?UNBOUND-ANCHOR}} the Root Zone Trust Anchor
+{{?RFC7958}} and retrieve {{UNBOUND-ANCHOR}} the Root Zone Trust Anchor
 have been defined, it is believed these mechanisms should be extended to
 other KSKs or Trust Anchors.   
 
@@ -490,7 +490,7 @@ domains. The configuration may be updated by adding new domains for
 which the corresponding Trust Anchors needs to be retrieved using an
 automated bootstrapping procedure. This case is not considered in this
 section and is instead addressed in the bootstrapping section
-{{bootstrapping}}. 
+{{boot}}. 
 
 On the other hand, the value associated to the trust anchor may be
 updated over time which is part of the maintenance of the configuration
@@ -521,7 +521,7 @@ When the DNSSEC Resolver is not able to validate signatures because a
 key or DS has been published with an error, the DNSSEC Operator MAY
 temporarily disable the signature check for that key the time the error
 is addressed. This is performed using Negative Trust Anchor and is the
-scope of section {{negative-ta}}. 
+scope of section {{nta}}. 
 
 ### Automated Updates to DNSSEC Trust Anchors {#automated-update-ta}
 
@@ -532,7 +532,7 @@ Anchors.
 Updates of these Trust Anchors are not expected to be handled manually
 by the DRO. Instead, there is an existing method for managing positive
 trust anchors, documented in "Automated Updates to DNSSEC Trust Anchors"
-{{!RFC 5011}} {{I-D.ietf-dnsop-rfc5011-security-considerations}}. This,
+{{!RFC5011}} {{?I-D.ietf-dnsop-rfc5011-security-considerations}}. This,
 and potential updates to it, are recommended to be supported in general
 purpose trust anchor stores.
 
@@ -541,10 +541,10 @@ Resolver Operator. This introduces a potentially huge vector for
 configuration errors, but due to human intervention as well as potential
 misunderstanding of ongoing operations. 
 
-## Automated Trust Anchor Check {#automated-check}
+## Automated Trust Anchor Check {#automated-ta-check}
 
 Signaling Trust Anchor Knowledge in DNS Security Extensions (DNSSEC)"
-{{!RFC 8145}} provides the ability to query a resolver the DNS KEY used
+{{!RFC8145}} provides the ability to query a resolver the DNS KEY used
 for the signature check. It is RECOMMENDED a DRO enables this channel to
 communicate the Trust Anchors used as opposed as opening a management
 interface to the resolver.  
@@ -597,7 +597,7 @@ result,
 Running Recommendation
 : it is RECOMMENDED a DRO enables reporting to the authoritative server
 as specified in "Signaling Trust Anchor Knowledge in DNS Security
-Extensions (DNSSEC)" {{!RFC 8145}}  
+Extensions (DNSSEC)" {{!RFC8145}}  
 
 
 ## Negative Trust Anchors {#nta}
@@ -608,7 +608,7 @@ introduction of a Negative Trust Anchor consists in the only
 intervention related to Trust Anchors a DRO SHOULD be able to performed
 on a resolver. 
 
-"Definition and Use of DNSSEC Negative Trust Anchors" (RFC 7646) defines
+"Definition and Use of DNSSEC Negative Trust Anchors" {{!RFC7646}} defines
 the ways Negative Trust Anchors are managed and SHOULD be followed by
 DROs. 
 
@@ -636,7 +636,7 @@ insertion of NTA.
 
 Upon a high rate of failure, the DNSSEC Resolve operator is expected to
 confirm the value of the Trust Anchor used by the resolver is correct
-and up-to-date. (see section {{automated-check}} with on demand check).
+and up-to-date. (see section {{automated-ta-check}} with on demand check).
 Failed key roll over are not expected to happen a that point.  This
 could result in an emergency key roll over. It is RECOMMENDED the DNSSEC
 Resolver operator get a confirmation. The DRO could either flush the
@@ -739,7 +739,7 @@ RRsets TTL SHOULD NOT exceed the KSK / ZSK initial TTL value.
 
 Running recommendation
 : It is RECOMMENDED a DRO reports the DNSKEY used to the authoritative
-server as performed for the TA (see section {{{automated-reporting}}) 
+server as performed for the TA (see section {{automated-reporting}}) 
 
 A DRO SHOULD monitor the number of validation failure associated to each
 ZSK/KSK and report when a threshold is met. By receiving an alert, the
@@ -757,7 +757,7 @@ means to the DRO to take action with full knowledge without necessary
 asking for a confirmation. In other cases it could prevent invalidation
 to happen. These check may be performed for a limited subset of domains
 or generalized. The expected check are similar as those detailed for TA
-(see section {{automated-check}}).    
+(see section {{automated-ta-check}}).    
 
 # Cryptography Deprecation
 
