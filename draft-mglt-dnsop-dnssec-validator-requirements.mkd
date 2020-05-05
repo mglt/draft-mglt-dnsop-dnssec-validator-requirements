@@ -2,7 +2,7 @@
 
 title: Recommendations for DNSSEC Resolvers Operators
 abbrev: DRO Recommendations
-docname: draft-mglt-dnsop-dnssec-validator-requirements-09
+docname: draft-mglt-dnsop-dnssec-validator-requirements-10
 
 
 area: operational
@@ -369,7 +369,7 @@ This includes the TA associated to the trust model established by the DRO.
 3. TA reporting
 : The reporting of the TA used by the resolver is  made to the DRO as well as the authoritative servers which are hold responsible for making their zone validated by DNSSEC resolvers.  
 
-This section is only considering TA and not NTA. The handling of NTA is detailed in section {{nta}}. 
+This section is only considering TA and not NTA. The handling of NTA is detailed in {{nta}}. 
 
 ## Trust Anchor Configuration {#boot}
 
@@ -498,8 +498,8 @@ This includes for a DRO the ability to check which TA are in used as well as to 
 
 Trust is inherently a matter of an operations policy. 
 As such, a DRO will need to be able to update the list of Trust Anchors. 
-TA updates is not expected to be handled manually.  
-This introduces a potentially huge vector for configuration errors, but due to human intervention as well as potential misunderstanding of ongoing operations. 
+TA updates are not expected to be handled manually.  
+This introduces a potentially huge vector for configuration errors, due to human intervention as well as potential misunderstanding of ongoing operations. 
 
 START-UP REC:
 
@@ -514,7 +514,7 @@ Note that retrieving in an automated way the value of the TA removes old values 
 In the case of a key roll over, the resolver is moving from an old value to an up-to date value. 
 This up-to-date value does not need to survive reboot, and there is no need to update the configuration file - configuration is updated by a separate process. 
 To put it in other words, the updated value of the TA is only expected to be stored in the resolver's memory. 
-Not updating the configuration file prevents a failed synchronization to to the absence of write permission that are hardly in the control of the software.    
+Avoiding the configuration file to be updated prevents old configuration file to survive to writing error on read-only file systems. 
 
 The TA used by a resolver may be part of a configuration parameter as well as part of an internal state of the resolver. 
 It is NOT RECOMMENDED a DRO accesses configuration or internal state of a resolver  as it may open the resolver to other vulnerabilities and provides privileged access to a potential attacker. 
@@ -522,14 +522,14 @@ It is NOT RECOMMENDED a DRO accesses configuration or internal state of a resolv
 START-UP REC:
 
 * DRO SHOULD enable "Signaling Trust Anchor Knowledge in DNS Security Extensions (DNSSEC)" {{!RFC8145}} to provide visibility to the TA used by the resolver. 
-The TA can be queries using a DNS KEY query. The channel MAY be protected and restricted to the DRO.  
+The TA can be queried using a DNS KEY query. The channel MAY be protected and restricted to the DRO.  
 
-Note also that {{!RFC8145}} does not only concerns Trust Anchor but is instead generic to DNSKEY RRsets. 
+Note also that {{!RFC8145}} does not only concern Trust Anchor but is instead generic to DNSKEY RRsets. 
 As a result, unless for the root zone, it is not possible to determine if the KSK/ZSK or DS is a Trust Anchor or a KSK/ZSK obtained from regular DNSSEC resolutions. 
 
 TA health check includes validating DNSKEY RRsets and associated DS RRsets in the resolver, on the DNS authoritative servers  as well as those obtained out-of-band.  
 TA health check results MUST be logged. 
-The check SHOULD evaluate if the mismatch result from an ongoing normal roll over, a potential emergency key roll over, failed roll over or any other envisioned cases.  
+The check SHOULD evaluate if the mismatch resulted from an ongoing normal roll over, a potential emergency key roll over, failed roll over or any other envisioned cases.  
 Conflicts are not inherently a problem as some keys may be withheld from distribution via the DNS.     
 A failed key roll over or any other abnormal situation  MUST trigger an alarm.
 
@@ -547,13 +547,13 @@ ON DEMAND REC:
 
 # Negative Trust Anchors Related Recommendations {#nta}
 
-When the DNSSEC Resolver is not able to validate signatures because a key or DS has been published with an error, the DNSSEC Operator MAY temporarily disable the signature check for that key the time the error is addressed. 
+When the DNSSEC Resolver is not able to validate signatures because a key or DS has been published with an error, the DNSSEC Operator MAY temporarily disable the signature check for that key until the time the error is addressed. 
 This is performed using NTA{{!RFC7646}}. 
 NTA represents the only permitted intervention in the resolving process for a DRO.  
 
 NTA are considered as temporary fix for a known unsecured domain, which is different from an TA that would not be trusted. 
 The designation of NTA might be misleading, but NTA are not expected to be part of the trust model. 
-This does not prevents a DRO to provision NTA as a configuration parameters NTA. The management of the configuration SHOULD be automated as described in {{boot}}.  
+This does not prevent a DRO to provision NTA as a configuration parameters NTA. The management of the configuration SHOULD be automated as described in {{boot}}.  
 
 Handling NTA is described in "Definition and Use of DNSSEC Negative Trust Anchors" {{!RFC7646}} and a DRO SHOULD follow these guidelines. The intent of this section is to position these guidelines toward the operational recommendations provided in this document. 
 
@@ -573,7 +573,7 @@ A failure in signaling validation is associated to a mismatch between the key an
 DNSKEY/DS RRsets for TA have a higher level of trust then regular KSK/ZSK. 
 In addition, DRO are likely to have specific communication channel with TA maintainer which eases trouble shooting. 
 
-A signature validation failure is either an attack or a failure into the signing operation on the authoritative servers. 
+A signature validation failure is either an attack or a failure in the signing operation on the authoritative servers. 
 The DRO is expected to confirm this off line before introducing the Negative Trust Anchor. 
 This is likely to happen via a human confirmation. As a result here are the
 following recommendations:
@@ -648,7 +648,7 @@ This would at least provide insight to the authoritative server and provide it s
 
 The purpose of reporting the currently used Trust Anchor for a domain name is to establish an informational channel between the resolver and the authoritative server. 
 This data may not directly be useful for the DNSSEC Resolver, but instead to the authoritative server. 
-In return it is likely the authoritative server will take the appropriated steps in operating the authoritative server and consider this information. 
+In return it is likely the authoritative server will take the appropriate steps in operating the authoritative server and consider this information. 
 As a result, 
 
 RUNNING REC:
