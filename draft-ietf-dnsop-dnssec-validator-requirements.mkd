@@ -681,13 +681,14 @@ In the case of DNSSEC signature protocols are likely to be updated over time.
 In order to anticipate the sunset of one of the signature scheme, a DNSSEC validator may willing to estimate the impact of deprecating one signature scheme.
 
 Currently {{!RFC6975}} provides the ability for a DNSSEC validator to announce an authoritative server the supported signature schemes.
-However, a DNSSEC validator is not able to determine other than by trying whether a signature scheme is supported by the authoritative server.
+However, a DNSSEC validator is not able to determine other than by requesting and monitoring DNSKEY RRsets as well as RRSIG.  
+These RRsets are received by enabling DNSSEC validation by default which is obviously the case for DNSSEC validator.  
 
 To safely deprecate one signature scheme, the DNSSEC validator operator is expected to follow the recommendation below:
 
 RUN TIME REC:
 
-* A DNSSEC validator operator SHOULD regularly request and monitor the signature scheme supported by an authoritative server.
+* A DNSSEC validator operator SHOULD regularly request and monitor the signature scheme supported by  an authoritative server.
 
 #  Invalid Reporting Recommendations
 
