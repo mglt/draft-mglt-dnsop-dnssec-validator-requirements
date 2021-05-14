@@ -693,12 +693,12 @@ RUN TIME REC:
 
 A DNSSEC validator receiving a DNS response cannot make the difference between receiving an non-secure response versus an attack. 
 Dropping DNSSEC fields by a misconfigured middle boxes, such as DS, RRRSIG is considered as an attack. 
-A DNSSEC validator is expected to perform secure DNS resolution and as such protect its stub client. An invalid response may be the result of an attack or a misconfiguration, and the DNSSEC validator may play an important role in sharing this information.
+A DNSSEC validator is expected to perform secure DNS resolution and as such protect its stub client. 
+An invalid response may be the result of an attack or a misconfiguration, and the DNSSEC validator may play an important role in sharing this information with the authoritative server or domain name owner.
 
 RUN TIME REC:
 
-* DRO SHOULD monitor and report the unavailability of the DNSSEC
-service.
+* DRO SHOULD monitor and report the absence of the DNSSEC RRsets that prevents DNSSEC validation.
 
 RUN TIME REC:
 
