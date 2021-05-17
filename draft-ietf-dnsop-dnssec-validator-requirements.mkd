@@ -2,7 +2,7 @@
 
 title: Recommendations for DNSSEC Resolvers Operators
 abbrev: DRO Recommendations
-docname: draft-ietf-dnsop-dnssec-validator-requirements-00
+docname: draft-ietf-dnsop-dnssec-validator-requirements-01
 
 
 area: operational
@@ -626,17 +626,22 @@ Note also that inconsistencies between the ZSK / KSK stored in the cache and tho
 
 Typically, a request for the KSK / ZSK may have been provided by a cache that is storing the new published value, while the data and associated signatures may be associated to the old KSK / ZSK.  
 
-Incoherence between RRsets and DNSKEYs is not the responsibility of the DRO, but instead it is the responsibility of authoritative server publishing these data. 
+Incoherence between RRsets and DNSKEYs is not the responsibility of the DRO, but instead it is the responsibility of authoritative server publishing these data.
+This includes insuring the coherence between TTLs and signature validation periods as well as small variations of the resolvers clocks. 
+Section 4.4.1 of {{!RFC6781}} provides some recommendations that can be implemented by the authoritative server which puts the responsibility of failure of signature validation under the responsibility of the authoritative server.
 A DRO may however limit the risks for these inconsistencies to happen by configuring the DNSSEC validator with generic rules that applies to the validation process. 
 Typically, the TTL associate to the DNSKEY is an engagement from the authoritative server that the DNSKEY will remain valid over this period. 
 As this engagement supersedes the validation of any RRSIG and by extension to any RRset in the zone, this TTL value may be used as the maximum value for the TTL associated to FQDNs in the zone. 
+Section 8.1 of {{!RFC4033}} mention the ability by the resolver to set the upper bound of the TTL to the remaining signature validity period.   
 This would at least reduce inconsistencies during regular KSK roll over. 
-In addition, the DNSSEC validator should also be able to provide a maximum values for TTLs. 
+In addition, the DNSSEC validator should also be able to provide a maximum values for TTLs.  
+These values MAY also consider the small inaccuracy of the local clock.     
 
 RUN TIME REC:
 
 * To limit the risks of incoherent data in the cache, it is RECOMMENDED DRO enforce TTL policies of RRsets based on the TTL of the DS, KSK and ZSK.
 RRsets TTL SHOULD NOT exceed the DS, KSK or ZSK initial TTL value, that TTL SHOULD trigger delegation revalidation as described in {{!I-D.huque-dnsop-ns-revalidation}}.
+TTL SHOULD NOT exceed the signature validity.
 
 
 # DNSKEY Related Recommendations 
