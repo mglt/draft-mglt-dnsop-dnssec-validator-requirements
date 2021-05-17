@@ -696,7 +696,8 @@ To safely deprecate one signature scheme, the DNSSEC validator operator is expec
 
 RUN TIME REC:
 
-* A DNSSEC validator operator SHOULD regularly request and monitor the signature scheme supported by  an authoritative server.
+* A DRO SHOULD regularly request and monitor the signature scheme supported by  an authoritative server.
+* A DRO SHOULD report a "Unsupported DNSKEY Algorithm" as defined in {{!RFC8914}}  when a deprecated algorithm is used for validation. 
 
 #  Invalid Reporting Recommendations
 
@@ -707,11 +708,8 @@ An invalid response may be the result of an attack or a misconfiguration, and th
 
 RUN TIME REC:
 
-* DRO SHOULD monitor and report the absence of the DNSSEC RRsets that prevents DNSSEC validation.
-
-RUN TIME REC:
-
-* DRO SHOULD monitor and report an invalid DNSSEC validation.
+* DRO SHOULD monitor and report DNSSEC validation error. 
+Reporting may take various means but the DRO SHOULD implement {{!RFC8914}} to inform the DNS client. 
 
 #  IANA Considerations
 
