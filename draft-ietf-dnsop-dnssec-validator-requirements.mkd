@@ -63,7 +63,10 @@ informative:
     author: 
     target: https://nlnetlabs.nl/documentation/unbound/unbound-anchor/
     title: unbound-anchor - Unbound anchor utility
-
+  ENT:
+    author: Vincent Levigneron
+    target: https://indico.dns-oarc.net/event/25/contributions/403/attachments/378/647/AFNIC_OARC_Dallas.pdf
+    title: ENT was here !!!
 
 
 
@@ -131,9 +134,9 @@ key to name associations are determined to be "trusted" - and are called
 trust anchors. In DNSSEC, a validator needs one or more Trust Anchors
 from which to grow chains of verified keys.
 
-With operational experience, a twist has emerged.  More often, to date,
-failed validation is due to operator error and not an attempt to forge
-data.  In general badly signed RRsets or zone badly delegated are out of
+With operational experience, a twist has emerged. 
+More often, to date, failed validation is due to operator error or software bug {{ENT}} and not an attempt to forge data.  
+In general badly signed RRsets or zone badly delegated are out of
 scope of the DRO's responsibility. However, the DRO may reflect this
 operational error with a temporary solution designated as Negative Trust
 Anchors (NTA) {{!RFC7646}}. A NTA instructs a validator to ignore the
@@ -755,6 +758,10 @@ As a result, information considered by the DNSSEC validator should be
 from a trusted party.  This trust party should have been authenticated,
 and the channel used to exchange the information should also be
 protected and authenticated.
+
+
+The software used for DNSSEC validator is not immune to bugs and may become vulnerable independently of how it is operated. 
+As a result a DRO SHOULD NOT depend on a single implementation or version of a given software and SHOULD instead run at least two independent pieces of software.  
 
 # Contributors
 
