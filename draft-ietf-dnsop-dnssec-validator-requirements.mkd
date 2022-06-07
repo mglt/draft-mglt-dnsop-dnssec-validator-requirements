@@ -133,19 +133,19 @@ Such trust model is briefly recapped in {{sec-dnssec-val-desc}} so operators und
 
 This document uses the following terminology:
 
-DNSSEC validator
+DNSSEC validator:
 : the entity that performs DNSSEC resolution and performs signature
 validation.
 
-Accurate validation
+Accurate validation:
 : validation that avoids false positives and catches true negatives.
 
-Trust Anchor Data Store
+Trust Anchor Data Store:
 : a module (of code) implementing functions related to the trust anchors
 used by the validator.  This is essentially a database allowing access,
 monitoring of, and changes to trust anchors.
 
-DNSSEC Resolver Operator (DRO)
+DNSSEC Resolver Operator (DRO):
 : The operator providing DNSSEC validation service and managing DNSSEC
 validators
 
@@ -182,35 +182,35 @@ This is not meant to be an architecture for code, this is meant to be a framewor
 { title="DNSSEC Validator Description" }
 
 
-Time Source
+Time Source:
 : The wall clock time provides the DNSSEC Validation Engine the current time. 
 Time is among other used to validate the RRSIG Signature and Inception Fields to provide some protection against replay attacks.
 
-Cryptograhic Libraries
+Cryptograhic Libraries:
 : The code performing mathematical functions provides the DNSSEC Validation Engine the ability to check the Signature Field that contains the cryptographic signature covering the RRSIG RDATA.
 
-DNS Message
+DNS Message:
 : DNS responses are used to carry the information from the DNS system.
 The receiver of the DNS message can be any kind of application including DNS-related application such as in the case of automated Trust Anchor update performed by the Trust Anchor Manager & Storage. 
 The DNSSEC Validator Engine accurately validates the DNS responses before caching them in the DNS Cache and forwarding them to the DNS receiver. 
 In case of validation failure, an error is returned and the information may be negatively cached.
 
 
-DNS Caches
+DNS Caches:
 : Include positive and negative caches. 
 The DNSSEC Validation Engine fills DNS Caches with the results of a validation (positive data, negative failures). 
 The DNSSEC trust model considers that once a RRset has been accurately validated by the DNSSEC Validator Engine, the RRset is considered trusted (or untrusted) for its associated TTL. 
 DNS Caches contain RRsets that may contain information requested by the application (RRset of type AAAA for example) as well as RRset necessary to accurately validate the RRsets (RRsets of type DNSKEY or RRSIG for example). 
 It also worth noticing that RRset validated with DNSSEC or RRset that are not validated with DNSSEC fill the DNS Cache with the same level of trust.
 
-Trust Anchor Manager
+Trust Anchor Manager:
 : The database of trust anchors associated to database management processes. 
 This function provides the DNSSEC Validation Engine Trust Anchor information when needed. 
 When TA needs to be updated, the Trust Anchor Manager is also responsible to handle the updating procedure.
 This includes sending DNS Messages as well as treating appropriately the DNS responses that have been accurately validated by the DNSSEC Validator Engine.  
 This will require the DNSSEC Validator to update Trust Anchor information, whether via methods like Automated Updates of DNSSEC Trust Anchors {{!RFC5011}}, management of Negative Trust Anchors, or other, possibly not yet defined, means.
 
-DNSSEC Validation Engine
+DNSSEC Validation Engine:
 : follows local policy to approve data. The approved data is returned to the requesting application as well as in the DNS Caches. 
 While the cryptographic computation of the RRSIG signature may be the most visible step, the RRSIG record also contains other information intended to help the validator perform its work, in some cases "sane value" checks are performed.
 For instance, the original TTL (needed to prepare the RR set for validation) ought to be equal to or higher than the received TTL.
@@ -229,15 +229,15 @@ The recommendations are voluntary restrictive to prevent side effects of interve
 The RECOMMENDATIONS in this document are subdivided into the following
 categories:
 
-Start-up recommendations
+Start-up recommendations (STARTUP):
 : which describes RECOMMENDED operations the DRO is expected to perform when the resolver is started. 
 These operations typically includes health check of the infrastructure the resolver is instantiated on as well as configuration check.
 
-Run time recommendations
+Run time recommendations (RUNTIME):
 : which describes RECOMMENDED operations the DRO is expected to perform on its running resolvers.
 These operations typically include health checks of the infrastructure as well as the resolvers.
 
-On demand recommendations
+On demand recommendations (ONDEMAND):
 : which describes the RECOMMENDED operations a DRO may perform. 
 This includes the ability to operate health check at a given time as well as specific operations such as flushing the cache. 
 The reason the document mentions these recommendations is to enable DROs to have the appropriates tools as well as to restrict their potential interventions.
@@ -252,7 +252,7 @@ These devices cannot rely on their time estimation to perform DNSSEC validation.
 
 Time synchronization may be performed manually, but for the sake of operations it is strongly RECOMMENDED to automate the time synchronization on each resolver. 
 
-START-UP REC:
+STARTUP:
 
 * DRO MUST provide means to update the time without relying on DNSSEC when the DNSSEC validator is started. 
 The resolver MUST NOT start if the time synchronization does not succeed at start time.
@@ -261,11 +261,11 @@ Note that updating time in order to be able to perform DNSSEC validation may bec
 The update mechanisms must consider the DNSSEC validator may not able to validate the DNSSEC queries.  
 In other words, the mechanisms may have to update the time over an unsecure DNSSEC resolution.
 
-RUN TIME REC:
+RUNTIME:
 
 * While operating, DRO MUST closely monitor time derivations of the resolvers and maintain the time synchronized.
 
-ON DEMAND REC:
+ONDEMAND:
 
 * A DRO SHOULD be able to check and synchronize, on demand, the time of the system of its resolver.
 
@@ -280,15 +280,15 @@ The TA store is essentially a database, storing the (positive) trust anchors.
 Management of the TA can be done manually or in an automated way.
 Automatic management of the TA is RECOMMENDED and can be subdivided into the following sub-categories:
 
-1. Initial TA provisioning
+1. Initial TA provisioning:
 : that is the ability, for a DRO, to ensure a starting resolver is automatically provisioned with an up-to-date configuration.
 This includes the TA associated to the trust model established by the DRO.
 
-2. TA update over time
+2. TA update over time:
 : while the trust model may not evolve, the cryptographic keys associated to the security entry points are subject to change and thus TA needs to be updated over time. A DRO needs to check TA updates properly.
 
 
-3. TA reporting
+3. TA reporting:
 : The reporting of the TA used by the resolver is  made to the DRO as well as the authoritative servers which are hold responsible for making their zone validated by DNSSEC resolvers.
 
 This section is only considering TA and not NTA. The handling of NTA is detailed in {{nta}}.
@@ -300,17 +300,17 @@ As these TAs change over time, the DRO MUST ensures resolvers are always provisi
 
 To do so, the TA configuration is considered as a trusted model instantiated as follows:
 
-1. Trust model definition
+1. Trust model definition:
 :The DRO defines the domain names that constitutes security entry point (TA) -- see {{trust-model-def}} for more details.
 
-2. Trust model bootstrapping
+2. Trust model bootstrapping:
 : A bootstrapping procedure is applied to each TA to retrieve their TA values - that is the corresponding value of the key - in a trusted way. 
 Such TA MAY have a specific format not understood by the resolver -- see {{trust-model-boot}} for more details.
 
-3. DNSSEC resolver configuration generation
+3. DNSSEC resolver configuration generation:
 :  The TA with associated values are formatted appropriately for the DNSSEC resolver that will be instantiated. In many cases the appropriated format is the DNS RRset format - see {{conf}} for more details.
 
-4. DNSSEC resolver instantiation
+4. DNSSEC resolver instantiation:
 : The DNSSEC resolver is started, performs some checks before becoming operational, that is checking comp ability between provisioned TAs and those found online. 
 These checks are implemented by the resolver and not really in scope of the DRO -- see {{instantiation}} for more details.
 
@@ -359,7 +359,7 @@ In many cases, an alternative trusted source will be preferred such as TLS which
 Although some bootstrapping mechanisms to securely retrieve publish {{?RFC7958}} and retrieve {{UNBOUND-ANCHOR}} the Root Zone Trust Anchor have been defined, it is believed these mechanisms should be extended to other KSKs or Trust Anchors.
 Such bootstrapping process enables a DRO to start a DNSSEC resolver from a configuration file, that reflects the trust model of the DRO.
 
-START-UP REC:
+STARTUP:
 
 * DRO SHOULD only rely on TA associated with a bootstrapping mechanism.
 
@@ -392,7 +392,7 @@ The necessity of tweaking the data depending of the software implementer or even
 ### DNSSEC Resolver Instantiation {#instantiation}
 
 
-START-UP REC:
+STARTUP:
 
 * DNS resolver MUST validate the TA before starting the DNSSEC resolver, and a failure of TA validity check MUST prevent the DNSSEC resolver to be started. Validation of the TA includes coherence between out-out band values, values stored in the DNS as well as corresponding DS RRsets.
 
@@ -417,7 +417,7 @@ As such, a DRO will need to be able to update the list of Trust Anchors.
 TA updates are not expected to be handled manually.
 This introduces a potentially huge vector for configuration errors, due to human intervention as well as potential misunderstanding of ongoing operations.
 
-START-UP REC:
+STARTUP:
 
 * DRO SHOULD enable "Automated Updates to DNSSEC Trust Anchors" {{!RFC5011}} {{?I-D.ietf-dnsop-rfc5011-security-considerations}}.
 
@@ -435,7 +435,7 @@ Avoiding the configuration file to be updated prevents old configuration file to
 The TA used by a resolver may be part of a configuration parameter as well as part of an internal state of the resolver.
 It is NOT RECOMMENDED a DRO accesses configuration or internal state of a resolver  as it may open the resolver to other vulnerabilities and provides privileged access to a potential attacker.
 
-START-UP REC:
+STARTUP:
 
 * DRO SHOULD enable "Signaling Trust Anchor Knowledge in DNS Security Extensions (DNSSEC)" {{!RFC8145}} to provide visibility to the TA used by the resolver.
 The TA can be queried using a DNSKEY query. The channel MAY be protected and restricted to the DRO.
@@ -449,7 +449,7 @@ The check SHOULD evaluate if the mismatch resulted from an ongoing normal roll o
 Conflicts are not inherently a problem as some keys may be withheld from distribution via the DNS.
 A failed key roll over or any other abnormal situation  MUST trigger an alarm.
 
-RUN TIME REC:
+RUNTIME:
 
 * A DRO SHOULD regularly run TA health checks.
 
@@ -457,7 +457,7 @@ If the mismatch is due to a failed key roll-over, this SHOULD be considered as a
 The DRO MUST restart the resolver with updated TA.
 
 
-ON DEMAND REC:
+ONDEMAND:
 
 * A DRO SHOULD be able to check the status of a TA as defined in Section 3 of {{!RFC7583}}. 
 
@@ -474,11 +474,11 @@ The management of the configuration SHOULD be automated as described in {{boot}}
 
 Handling NTA is described in {{!RFC7646}} and a DRO SHOULD follow these guidelines. The intent of this section is to position these guidelines toward the operational recommendations provided in this document.
 
-START-UP REC:
+STARTUP:
 
 * DRO SHOULD be able to automatically configure NTA when starting DNSSEC resolvers.
 
-ON DEMAND REC:
+ONDEMAND:
 
 * DRO SHOULD set automated procedures to determine the NTA of DNSSEC resolvers.
 
@@ -496,7 +496,7 @@ The DRO is expected to confirm this off line before introducing the NTA.
 This is likely to happen via a human confirmation. As a result here are the
 following recommendations:
 
-RUN TIME REC:
+RUNTIME:
 
 * DRO SHOULD monitor the number of signature failure associated to each DNSKEY. 
 These number are only hints and MUST NOT trigger automated insertion of NTA.
@@ -513,7 +513,7 @@ KSK / ZSK are not part of the DNSSEC validator configuration.
 Their values in the DNS Caches may not reflect those published by the authoritative servers or may be incoherent with the RRset in the DNS Cache they are validating.
 However, such incoherence primary results from error in the management of the authoritative servers.
 As a result, it is not expected that the DNSSEC validator provides complex management facilities to address these issues as this will modify the DNS architecture and add complexity that is not proved to be beneficial.
-As a result, recommendations always belong to the run time or on demand recommendations. 
+As a result, recommendations always belong to the run time or on demand recommendations.
 The main difference between TA and KSK/ZSK is that the DRO does not necessarily have an out of band mechanism to retrieve the RRsets.
 As a result, the DRO has less information to determine and confirm what is happening. 
 The default recommendation is to let things go.
@@ -550,7 +550,7 @@ This would at least reduce inconsistencies during regular KSK roll over.
 In addition, the DNSSEC validator should also be able to provide a maximum values for TTLs.
 These values MAY also consider the small inaccuracy of the local clock.
 
-RUN TIME REC:
+RUNTIME:
 
 * To limit the risks of incoherent data in the cache, it is RECOMMENDED DRO enforce TTL policies of RRsets based on the TTL of the DS, KSK and ZSK.
 RRsets TTL SHOULD NOT exceed the DS, KSK or ZSK initial TTL value, that TTL SHOULD trigger delegation revalidation as described in {{!I-D.ietf-dnsop-ns-revalidation}}.
@@ -584,7 +584,7 @@ Similarly, a DRO may be informed by other channel a rogue or unwilling DNSKEY ha
 
 In such situation, the DRO SHOULD be able to remove the RRsets validated by the rogue DNSKEY.
 
-ON DEMAND REC:
+ONDEMAND:
 
 * A DRO MUST be able to flush the cached data associated to a DNSKEY
 
@@ -602,7 +602,7 @@ These RRsets are received by enabling DNSSEC validation by default which is obvi
 
 To safely deprecate one signature scheme, the DNSSEC validator operator is expected to follow the recommendation below:
 
-RUN TIME REC:
+RUNTIME:
 
 * A DRO SHOULD regularly request and monitor the signature scheme supported by  an authoritative server.
 * A DRO SHOULD report a "Unsupported DNSKEY Algorithm" as defined in {{!RFC8914}}  when a deprecated algorithm is used for validation.
@@ -614,7 +614,7 @@ Dropping DNSSEC fields by a misconfigured middle boxes, such as DS, RRRSIG is co
 A DNSSEC validator is expected to perform secure DNS resolution and as such protects its stub client.
 An invalid response may be the result of an attack or a misconfiguration, and the DNSSEC validator may play an important role in sharing this information with the authoritative server or domain name owner.
 
-RUN TIME REC:
+RUNTIME:
 
 * DRO SHOULD monitor and report DNSSEC validation error.
 Reporting may take various means but the DRO SHOULD implement {{!RFC8914}} to inform the DNS client.
