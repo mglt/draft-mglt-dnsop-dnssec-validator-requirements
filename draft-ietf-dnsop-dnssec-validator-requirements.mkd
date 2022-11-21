@@ -2,7 +2,7 @@
 
 title: Recommendations for DNSSEC Resolvers Operators
 abbrev: DRO Recommendations
-docname: draft-ietf-dnsop-dnssec-validator-requirements-01
+docname: draft-ietf-dnsop-dnssec-validator-requirements-02
 submissionType: IETF
 
 ipr: trust200902
@@ -621,6 +621,37 @@ RUNTIME:
 
 * DRO SHOULD monitor and report DNSSEC validation error.
 Reporting may take various means but the DRO SHOULD implement {{!RFC8914}} to inform the DNS client.
+
+# Transport Recommendations
+
+DNSSEC validation requires that the validator is able to reliably obtain necessary records, especially DNSKEY records. This should be done at initial configuration, and tested periodically.
+
+This means the validator MUST ensure it is configured so that the UDP and TCP transports, and DNS resolver components, are compatible with the network paths that the majority of DNS queries traverse - which includes compatibility between DNS and transport parameters with the Maximum Transmission Unit  (MTU).
+
+
+In other words, make sure that:
+1. DNS UDP bufsize (EDNS parameter) is set to a value compatible with network MTUs the queries and responses will encounter. If the validator advertises a bufsize >> MTU, responses with the IPv4  Don't Fragment (DF) bit set whose size R where MTU < R <= bufsize  exceeds the MTU will be dropped by the router with MTU < R.
+
+2. The validator's OS TCP configuration has its advertised Maximum Segment Size (MSS) set to a value compatible with network MTUs the queries and responses will encounter.
+  * Having an advertised MSS set to a value < MTU ensures that Path MTU Discovery is not required
+  * If PMTUD fails for any reason, or if the server responding does not maintain or use PMTUD, and advertised MSS > MTU at any point in the path, TCP may encounter problems caused by IP fragmentation and reassembly.
+  * This is particularly relevant if there are any NAT type devices in the path, as those may not properly handle fragmentation and reassembly
+  * If all TCP segments are smaller than the path MTU, TCP will work reliably.
+
+The avoidance of fragmentation in order to address known fragmentation-related security issues with DNS (leading to cache poisoning, for example) has resulted in the need to set the DF bit on UDP.
+Validators will need to ensure their local environment can reliably get any critical DNSSEC records (notably DNSKEY) over UDP, or reliably get responses with TC=1 if overly large responses cannot be sent over UDP due to answers not fitting within the advertised bufsize payload.
+Validators also need to ensure TCP works if it is needed, for the same situations.
+
+
+STARTUP:
+* DRO MUST ensure UDP and TCP transport are enabled.
+* DRO MUST ensure DNS and TCP parameters will not exceed the expected MTU
+
+
+RUNTIME:
+* DRO SHOULD regularly discover MTU and ensure the DNS and TCP parameters are aligned wit this value.
+* DRO SHOULD closely monitor the absence of responses, or ICMP PTB message as a potential incompatibility between configured parameters and the MTU.
+
 
 #  IANA Considerations
 
