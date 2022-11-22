@@ -549,7 +549,6 @@ A DRO MAY however limit the risks for these inconsistencies to happen by configu
 Typically, the TTL associate to the DNSKEY is an engagement from the authoritative server that the DNSKEY will remain valid over this period.
 As this engagement supersedes the validation of any RRSIG and by extension to any RRset in the zone, this TTL value may be used as the maximum value for the TTL associated to FQDNs in the zone.
 Section 8.1 of {{!RFC4033}} mention the ability by the resolver to set the upper bound of the TTL to the remaining signature validity period.
-This would at least reduce inconsistencies during regular KSK roll over.
 In addition, the DNSSEC validator should also be able to provide a maximum values for TTLs.
 These values MAY also consider the small inaccuracy of the local clock.
 
@@ -575,7 +574,7 @@ This data may not directly be useful for the DNSSEC Resolver, but instead to the
 In return it is likely the authoritative server will take the appropriate steps in operating the authoritative server and consider this information.
 This results in the following recommendation:
 
-RUNNING REC:
+RUNNING:
 
 * A DRO SHOULD enable TA reporting to the authoritative server as specified in "Signaling Trust Anchor Knowledge in DNS Security Extensions (DNSSEC)" {{!RFC8145}}
 
@@ -589,7 +588,7 @@ In such situation, the DRO SHOULD be able to remove the RRsets validated by the 
 
 ONDEMAND:
 
-* A DRO MUST be able to flush the cached data associated to a DNSKEY
+* A DRO MUST be able to flush the cached data subtree associated to a DNSKEY
 
 
 
@@ -599,16 +598,25 @@ As mentioned in {{!RFC8247}} and {{!RFC8221}} cryptography used one day is expec
 In the case of DNSSEC signature protocols are likely to be updated over time.
 In order to anticipate the sunset of one of the signature scheme, a DNSSEC validator may be willing to estimate the impact of deprecating one signature scheme.
 
-Currently {{!RFC6975}} provides the ability for a DNSSEC validator to announce an authoritative server the supported signature schemes.
-However, a DNSSEC validator is not able to determine other than by requesting and monitoring DNSKEY RRsets as well as RRSIG.
-These RRsets are received by enabling DNSSEC validation by default which is obviously the case for DNSSEC validator.
+Currently, interoperability and security are enforced via cryptographic recommendations {{!RFC8624}} that are followed by both resolvers and authoritative servers.
+The implementation of such guidance is ensured by the software vendors and the compliance of their releases.
 
 To safely deprecate one signature scheme, the DNSSEC validator operator is expected to follow the recommendation below:
+
+STARTUP:
+* DRO MUST ensure recent software releases that comply with the most recent cryptographic guidances are being used 
 
 RUNTIME:
 
 * A DRO SHOULD regularly request and monitor the signature scheme supported by  an authoritative server.
 * A DRO SHOULD report a "Unsupported DNSKEY Algorithm" as defined in {{!RFC8914}}  when a deprecated algorithm is used for validation.
+
+
+One inconvenient such strategy does not let one DRO to take advantage of more recent cryptographic. 
+While currently not being widely used, a DRO MAY share information with authoritative server in the hope that future deployment of authoritative servers will be able to leverage it.  
+{{!RFC6975}} provides the ability for a DNSSEC validator to announce an authoritative server the supported signature schemes.
+However, a DNSSEC validator is not able to determine other than by requesting and monitoring DNSKEY RRsets as well as RRSIG.
+These RRsets are received by enabling DNSSEC validation by default which is obviously the case for DNSSEC validator.
 
 #  Invalid Reporting Recommendations
 
