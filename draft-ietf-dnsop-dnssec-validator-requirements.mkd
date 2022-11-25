@@ -223,8 +223,10 @@ Not shown - Name Server Process Management interfaces to elements, handling of C
 
 A DRO needs to be able to enable DNSSEC validation with sufficient confidence they will not be held responsible in case their resolver does not validate the DNSSEC response. 
 The minimization of these risks is provided by setting automated procedures, when a resolver is started or while it is operating, as well as some on-demand operations that enable the DRO to perform a specific operation. 
-The recommendations do not come with the same level of requirements and some are likely to be required.
+The recommendations do not come with the same level of recommendations and some are likely to be required.
 Others are optional and may be followed by more advanced DROs.
+It is up to the DRO to determine their applicability
+
 
 The recommendations are voluntary restrictive to prevent side effects of interventions that will be hard to predict, debug and understand.
 
@@ -248,7 +250,7 @@ The reason this document mentions these recommendations is to enable DROs to hav
 #  Time deviation and absence of Real Time Clock Recommendations
 
 With M2M communication some devices are not expected to embed Real Time Clock (Raspberry Pi is one example of such devices). 
-When these devices are re-plugged the initial time is set to January 1, 1970.
+With Raspberry Pi for example, when these devices are re-plugged their time is reset to some initial values like (January 1, 1970 for example) until they get re synchronized  via NTP.
 Other devices that have clocks  may suffer from time deviation.
 These devices cannot rely on their time estimation to perform DNSSEC validation.
 
@@ -384,7 +386,7 @@ This represents a consideration for implementations.
 On one hand, operators will place special emphasis on how the root zone DNSSEC KSK is managed.
 On the other hand, implementations  ought to accommodate trust anchors in a general manner, despite the odds that other trust anchors will not be configured in a specific deployment.
 
-Because of this, it is recommended that implementations make the root zone trust anchor obvious to the operator while still enabling configuration of general trust points.
+Because of this, it is RECOMMENDED that implementations make the root zone trust anchor obvious to the operator while still enabling configuration of general trust points.
 
 ###  Configuration Generation {#conf}
 
