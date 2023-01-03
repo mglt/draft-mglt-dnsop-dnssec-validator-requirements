@@ -227,7 +227,7 @@ The recommendations do not come with the same level of recommendations and some 
 Others are optional and may be followed by more advanced DROs.
 It is up to the DRO to determine their applicability. 
 
-Regarding recommendations on the behavior of the resolver, some recommendations may already be applied by default by the operated resolver software, in which case the DRO does not have top perform any action. 
+Regarding recommendations on the behavior of the resolver, some recommendations may already be applied by default by the operated resolver software, in which case the DRO does not have to perform any action. 
 Some recommendations may require to be activated via configuration by the DRO.   
 Some recommendations may simply not be provided by the operated software, in which case we recommend the DRO to contact the software vendor for further discussion. 
 
@@ -290,15 +290,19 @@ Automatic management of the TA is RECOMMENDED and can be subdivided into the fol
 
 1. Initial TA provisioning:
 : that is the ability, for a DRO, to ensure a starting resolver is automatically provisioned with an up-to-date configuration.
-This includes the TA associated to the trust model established by the DRO.
+This includes defining a trust model and ensuring the associated TAs values are valid at the time the resolver is started. 
+# This includes the TA associated to the trust model established by the DRO.
+
 
 2. TA update over time:
-: while the trust model may not evolve, the cryptographic keys associated to the security entry points are subject to change and thus a TA needs to be updated over time. A DRO needs to check that TAs update properly.
+: while the trust model may not evolve, the cryptographic keys associated to the security entry points are subject to change and thus a TA needs to be updated dynamically over time by a resolver.
+In this case, the DRO needs to check that the resolver has properly updated the TAs.
 
 
 3. TA reporting:
 : The reporting of the TA used by the resolver is made to the DRO as well as the authoritative servers which are hold responsible for making their zone validated by DNSSEC resolvers.
 
+Note that TA update and TA reporting only concerns running resolvers.
 This section is only considering TA and not NTA. The handling of NTA is detailed in {{nta}}.
 
 ## Trust Anchor Configuration {#boot}
@@ -309,7 +313,7 @@ As these TAs change over time, the DRO MUST ensure the resolvers are always prov
 To do so, the TA configuration is considered as a trusted model instantiated as follows:
 
 1. Trust model definition:
-:The DRO defines the domain names that constitutes security entry point (TA) -- see {{trust-model-def}} for more details.
+: The DRO defines the domain names that constitutes security entry point (TA) -- see {{trust-model-def}} for more details.
 
 2. Trust model bootstrapping:
 : A bootstrapping procedure is applied to each TA to retrieve their TA values - that is the corresponding value of the key - in a trusted way. 
@@ -343,12 +347,25 @@ Such companies may operate DNSSEC with a TA for the zone example.com in addition
 Similarly some domains may present different views such as a "private" view and a "public view".
 These zones may have some different content, and may use a different KSK for each view.
 
-The domain name chosen as the TA security entry point may be a child zone from another TA security entry point. For example, the DRO may use seperate TAs for example.com, .com, and the root zone.
+The domain name chosen as the TA security entry point may be a child zone from another TA security entry point.
+For example, the DRO may use seperate TAs for example.com, .com, and the root zone.
 The TA associated with a domain name is determined by the longest match.
 However, the trust model MUST at least ensure that any domain name in the DNS be covered by at least one TA.
 As the number of top level domains is evolving overtime, it remains safe to keep the root zone as a security entry point in order to cover the full domain name space.
 
 The default trust model remains rooted in the root zone as a security entry point, and no zones being considered as unsecured.
+By default, the instantiation of this trusted model is delegated by the DRO to the software vendor that is responsible to update the the default trust model with the up-to-date value of the TA. 
+In such cases, the trusted model is implemented by software-update that relies on the code signing key of the software provider. 
+
+The use of a different trust model must be carefully considered and NOT RECOMMENDED for DRO without a strong DNSSEC expertise.  
+A DRO implementing another trust model MUST be able to ensure that the trust model is properly implemented - that is with up-to-date TAs.
+The DRO MUST carefully balance the implications, the risks, the necessary involved mechanisms to achieve this goal with the potential benfits. 
+More specifically, it is expected updating the trust model's instantiation is performed in an automated way with strong validation validation and checks being put in place. 
+It is also likely that the DRO and the owner of the TA will have a specific relationship and TA update will be provided via a specific out-of-band channel. 
+More specifically, {{!RFC5011}} that we recommend to update TA by a running instance of resolver, is likely not to be sufficent, as it is completly automated and relies on in band signaling which comes with risks detailled in {{!RFC5011, Section 8}}.
+A DRO need to understand these risks. 
+Note also that even when {{!RFC5011}} the owner of the TA needs to respect the {{!RFC5011}} timings -- see {{automated-update-ta}}.
+   
 
 ### Trust Model Bootstrapping {#trust-model-boot}
 
@@ -404,14 +421,18 @@ STARTUP:
 
 * DNS resolver MUST validate the TA before starting the DNSSEC resolver, and a failure of TA validity check MUST prevent the DNSSEC resolver to be started. Validation of the TA includes coherence between out-out band values, values stored in the DNS as well as corresponding DS RRsets.
 
-## Trust Anchor Update
+## Trust Anchor Update 
 
 Updating the TA reflects the evolution of the trust.
 It is important to understand that this section does not consider the trust model to be updated by the DRO.
 This has been defined in section {{boot}}.
-Instead, it considers the evolution over time of the instantiation of the trust model, that is the update of the values associated to the TA.
+Instead, it considers the evolution over time of the instantiation of the trust model, that is the update of the values associated to the TA, by a running instance of resolver.
 Such updates need to be operated in a reliable and trusted way.
+Note that you may not need to proceed to such TA update if the DRO can guarantee that any instance has been instantiated with a configuration the reflects the current value of the TAs. 
+Given that the roll-over phases for a TA update are relatively long, for DRO that can ensure a fast deployment of the latest release of resolver, with the defult trust model being implemented by the software vendor, TA update is likely to be achieved via software updates.
 
+The remaining of this section is left to DRO willing to ensure their instance have the capacity to update their TAs while running.
+This may be a specific feature or a complementary feature to software update. 
 The value associated to the TA may be updated over time which is part of the maintenance of the configuration and needs to be performed by the DNSSEC resolver without any intervention of the DRO. This is the purpose of this section.
 
 TA update is expected to be transparent to the DRO (see {{automated-update-ta}}.
@@ -424,9 +445,12 @@ Trust is inherently a matter of an operations policy.
 As such, a DRO will need to be able to update the list of Trust Anchors.
 TA updates are not expected to be handled manually.
 This introduces a potentially huge vector for configuration errors, due to human intervention as well as potential misunderstanding of ongoing operations.
+Instead DRO will rely on "Automated Updates to DNSSEC Trust Anchors" {{!RFC5011}} when the TA signers is known to respect the  {{!RFC5011}} timing.
+
 
 STARTUP:
 
+* DRO SHOULD check TA signers commits to respect "Automated Updates to DNSSEC Trust Anchors" {{!RFC5011}} timings.
 * DRO SHOULD enable "Automated Updates to DNSSEC Trust Anchors" {{!RFC5011}} {{?I-D.ietf-dnsop-rfc5011-security-considerations}}.
 
 
