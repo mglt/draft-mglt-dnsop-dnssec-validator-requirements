@@ -731,5 +731,7 @@ We would like to thank very much Edward Lewis without who the document might pro
 # Acknowledgment
 
 The need to address DNSSEC issues on the resolver occured during multiple discussions   including among others Ted Lemon, Ralph Weber,
-Normen Kowalewski, Mikael Abrahamsson, Jim Gettys, Paul Wouters, Joe Abley, Michael Richardson, Vladimír Čunát, James Gannon, Andrew McConachie.
+Normen Kowalewski, Mikael Abrahamsson, Jim Gettys, Paul Wouters, Joe Abley, Michael Richardson, Vladimír Čunát, James Gannon, Andrew McConachie, Peter Thomassen, Florian Obser and Brian Dickson.
+
+We also appreciated the support of the DNSOP chairs Tim Wicinski, Suzanne Woolf and Benno Overeinder. 
 
