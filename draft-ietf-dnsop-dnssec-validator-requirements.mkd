@@ -2,7 +2,7 @@
 
 title: Recommendations for DNSSEC Resolvers Operators
 abbrev: DRO Recommendations
-docname: draft-ietf-dnsop-dnssec-validator-requirements-03
+docname: draft-ietf-dnsop-dnssec-validator-requirements-04
 submissionType: IETF
 
 ipr: trust200902
