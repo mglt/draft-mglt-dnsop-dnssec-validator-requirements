@@ -2,7 +2,7 @@
 
 title: Recommendations for DNSSEC Resolvers Operators
 abbrev: DRO Recommendations
-docname: draft-ietf-dnsop-dnssec-validator-requirements-02
+docname: draft-ietf-dnsop-dnssec-validator-requirements-03
 submissionType: IETF
 
 ipr: trust200902
@@ -33,6 +33,18 @@ author:
         country: Canada
         email: daniel.migault@ericsson.com
       -
+        ins: E. Lewis
+        name: Edward Lewis
+        org: ICANN
+        street:
+        -
+        city:
+        -
+        code:
+        -
+        country: USA
+        email: edward.lewis@icann.org
+      -
         ins: D. York
         name: Dan York
         org: ISOC
@@ -42,8 +54,7 @@ author:
         -
         code:
         -
-        country:
-        -
+        country: USA
         email: york@isoc.org
 
 informative:
@@ -83,48 +94,48 @@ mechanisms as well as monitoring and management mechanisms.
 
 The purpose of a DNSSEC Resolver Operator (DRO) is to provide DNSSEC validation in to their users.
 
-By validating with DNSSEC a received Resource Record Set (RRset), the resolver provides a high level of certainty that the information carried by the RRset is effectively as published by the legitimate owner of the RRset. 
-The act of DNSSEC validation {{!RFC4033}}{{!RFC4035}} can be broken into two part: A _Signature Validation_ which binds the RRset to a private key as well as _Trust_ in the owner of the private being the legitimate owner. 
+By validating with DNSSEC a received Resource Record Set (RRset), the resolver provides a high level of certainty that the information carried by the RRset is effectively as published by the legitimate owner of the RRset.
+The act of DNSSEC validation {{!RFC4033}}{{!RFC4035}} can be broken into two part: A _Signature Validation_ which binds the RRset to a private key as well as _Trust_ in the owner of the private being the legitimate owner.
 
-Signature Validation consists in checking the cryptographic signature of a RRset and involves among other parameters a DNSKEY Resource Record (RR) and RRSIG RR and the RRset itself. 
-The signature validation process results in designating the owner of the RRset as the owner of the corresponding private part of the public key contained in the DNSKEY RR. 
-Cryptography provides a high level of confidence in the binding to the private key. 
+Signature Validation consists in checking the cryptographic signature of a RRset and involves among other parameters a DNSKEY Resource Record (RR) and RRSIG RR and the RRset itself.
+The signature validation process results in designating the owner of the RRset as the owner of the corresponding private part of the public key contained in the DNSKEY RR.
+Cryptography provides a high level of confidence in the binding to the private key.
 In that sense, a rogue RRset likely results from the private key being exposed or guessed -- as opposed to signature or key collisions for example.
-As such differ the confidence into the Trust to designate which DNSKEY RR is legitimate.  
+As such differ the confidence into the Trust to designate which DNSKEY RR is legitimate.
 
 Trust implicitly assumes the private keys used to sign are not shared and as such can be associated their respective owners.
-The purpose of Trust is to put significant confidence into designating the legitimate DNSKEY RR - which also characterizes the corresponding private key. 
-Such trust is provided by a Trust Anchor (TA), and the chain of trust established between the TA and the DNSKEY RR. 
-The chain of trust is obtained by recursively validating the DNSKEY RRs. 
+The purpose of Trust is to put significant confidence into designating the legitimate DNSKEY RR - which also characterizes the corresponding private key.
+Such trust is provided by a Trust Anchor (TA), and the chain of trust established between the TA and the DNSKEY RR.
+The chain of trust is obtained by recursively validating the DNSKEY RRs.
 
-As a result, such trust results from the trust placed in the TA as well as the delegation mechanism provided by DNSSEC and the Signature Validation. 
-As TAs need to be managed over time, the trust also concerns the management procedure of the TA. 
+As a result, such trust results from the trust placed in the TA as well as the delegation mechanism provided by DNSSEC and the Signature Validation.
+As TAs need to be managed over time, the trust also concerns the management procedure of the TA.
 This is the main concern of this document.
 
-Data's authenticity and integrity is tied to the operator of the key that generates the signature.  
+Data's authenticity and integrity is tied to the operator of the key that generates the signature.
 It is conceivable that a validator could "know" the keys of each data source, but this is not practical at large scale.
-To counter this, DNSSEC relied on securely chaining keys in a manner isomorphic to the way names are delegated.  
+To counter this, DNSSEC relied on securely chaining keys in a manner isomorphic to the way names are delegated.
 Keys for a name will "vouch for" keys at a name delegated via the signing of a DS resource record set.
 
-Using keys to vouch for keys, recursively, works when a manageable set of key to name associations are determined to be "trusted" - and are called trust anchors. 
+Using keys to vouch for keys, recursively, works when a manageable set of key to name associations are determined to be "trusted" - and are called trust anchors.
 In DNSSEC, a validator needs one or more Trust Anchors from which to grow chains of verified keys.
 
 With operational experience, a twist has emerged.
 More often, to date, failed validation is due to operator error or software bug {{ENT}} and not an attempt to forge data.
-In general badly signed RRsets or zone badly delegated are out of scope of the DRO's responsibility. 
-However, the DRO may reflect this operational error with a temporary solution designated as Negative Trust Anchors (NTA) {{!RFC7646}}. 
+In general badly signed RRsets or zone badly delegated are out of scope of the DRO's responsibility.
+However, the DRO may reflect this operational error with a temporary solution designated as Negative Trust Anchors (NTA) {{!RFC7646}}.
 A NTA instructs a validator to ignore the presence of keys for a name, reacting as if the name is unsigned.
 
 Once accurately validated the RRset is assumed to be accurately validated and trusted during the time indicated by its TTL.
 
-The responsibilities of a DRO are limited to the management of TAs as well as providing the necessary infrastructure to perform the signature validation, e.g. appropriated libraries and time. 
-More specifically, badly signed zones or insertion of malicious DNSKEY fall out of the DRO's responsibilities. 
+The responsibilities of a DRO are limited to the management of TAs as well as providing the necessary infrastructure to perform the signature validation, e.g. appropriated libraries and time.
+More specifically, badly signed zones or insertion of malicious DNSKEY fall out of the DRO's responsibilities.
 Even though these threats fall out of these responsibilities, a DRO may collaborate with authoritative servers to limit the damage of their operational errors.
 
-This document is focused on operational recommendations that a DRO SHOULD put in place in order to implement sufficient trust that makes DNSSEC validation output accurate. 
+This document is focused on operational recommendations that a DRO SHOULD put in place in order to implement sufficient trust that makes DNSSEC validation output accurate.
 The recommendations described in this document include provisioning mechanisms as well as monitoring and management mechanisms.
 
-The mechanisms provided are designed in accordance of the DNSSEC trust model as to meet the current operations of DNSSEC. 
+The mechanisms provided are designed in accordance of the DNSSEC trust model as to meet the current operations of DNSSEC.
 Such trust model is briefly recapped in {{sec-dnssec-val-desc}} so operators understand the limits and motivations for such mechanisms.
 
 # Requirements Notation
@@ -154,7 +165,7 @@ validators
 
 #  DNSSEC Validator Description {#sec-dnssec-val-desc}
 
-This is a conceptual block diagram of the elements involved with DNSSEC validation. 
+This is a conceptual block diagram of the elements involved with DNSSEC validation.
 This is not meant to be an architecture for code, this is meant to be a framework for discussion and explanation.
 
 ~~~ aaasvg
@@ -185,7 +196,7 @@ This is not meant to be an architecture for code, this is meant to be a framewor
 
 
 Time Source:
-: The wall clock time provides the DNSSEC Validation Engine the current time. 
+: The wall clock time provides the DNSSEC Validation Engine the current time.
 Time is one input used to validate the RRSIG Signature and Inception Fields to provide some protection against replay attacks.
 
 Cryptograhic Libraries:
@@ -193,27 +204,27 @@ Cryptograhic Libraries:
 
 DNS Message:
 : DNS responses are used to carry the information from the DNS system.
-The receiver of the DNS message can be any kind of application including DNS-related application such as in the case of automated Trust Anchor update performed by the Trust Anchor Manager & Storage. 
-The DNSSEC Validator Engine accurately validates the DNS responses before caching them in the DNS Cache and forwarding them to the DNS receiver. 
+The receiver of the DNS message can be any kind of application including DNS-related application such as in the case of automated Trust Anchor update performed by the Trust Anchor Manager & Storage.
+The DNSSEC Validator Engine accurately validates the DNS responses before caching them in the DNS Cache and forwarding them to the DNS receiver.
 In case of validation failure, an error is returned and the information may be negatively cached.
 
 
 DNS Caches:
-: Include positive and negative caches. 
+: Include positive and negative caches.
 The DNSSEC Validation Engine fills DNS Caches with validated DNS RRsets.
-The DNSSEC trust model considers that once a RRset has been accurately validated by the DNSSEC Validator Engine, the RRset is considered trusted (or untrusted) for its associated TTL. 
-DNS Caches contain RRsets that may contain information requested by the application (RRset of type AAAA for example) as well as RRset necessary to accurately validate the RRsets (RRsets of type DNSKEY or RRSIG for example). 
+The DNSSEC trust model considers that once a RRset has been accurately validated by the DNSSEC Validator Engine, the RRset is considered trusted (or untrusted) for its associated TTL.
+DNS Caches contain RRsets that may contain information requested by the application (RRset of type AAAA for example) as well as RRset necessary to accurately validate the RRsets (RRsets of type DNSKEY or RRSIG for example).
 This can also include RRsets that were not DNSSEC signed at validation time.
 
 Trust Anchor Manager:
-: The database of trust anchors associated to database management processes. 
-This function provides the DNSSEC Validation Engine Trust Anchor information when needed. 
+: The database of trust anchors associated to database management processes.
+This function provides the DNSSEC Validation Engine Trust Anchor information when needed.
 When a TA needs to be updated, the Trust Anchor Manager is also responsible for handling the update procedure.
-This includes sending DNS Messages as well as treating appropriately the DNS responses that have been accurately validated by the DNSSEC Validator Engine.  
+This includes sending DNS Messages as well as treating appropriately the DNS responses that have been accurately validated by the DNSSEC Validator Engine.
 This will require the DNSSEC Validator to update Trust Anchor information, whether via methods like Automated Updates of DNSSEC Trust Anchors {{!RFC5011}}, management of Negative Trust Anchors, or other, possibly not yet defined, means.
 
 DNSSEC Validation Engine:
-: This follows local policy to approve data. The approved data is returned to the requesting application as well as to the DNS Caches. 
+: This follows local policy to approve data. The approved data is returned to the requesting application as well as to the DNS Caches.
 While the cryptographic computation of the RRSIG signature may be the most visible step, the RRSIG record also contains other information intended to help the validator perform its work, in some cases sanity checks are performed.
 For instance, the original TTL (needed to prepare the RR set for validation) ought to be equal to or higher than the received TTL.
 
@@ -221,15 +232,15 @@ Not shown - Name Server Process Management interfaces to elements, handling of C
 
 # Recommendations Categories
 
-A DRO needs to be able to enable DNSSEC validation with sufficient confidence they will not be held responsible in case their resolver does not validate the DNSSEC response. 
-The minimization of these risks is provided by setting automated procedures, when a resolver is started or while it is operating, as well as some on-demand operations that enable the DRO to perform a specific operation. 
+A DRO needs to be able to enable DNSSEC validation with sufficient confidence they will not be held responsible in case their resolver does not validate the DNSSEC response.
+The minimization of these risks is provided by setting automated procedures, when a resolver is started or while it is operating, as well as some on-demand operations that enable the DRO to perform a specific operation.
 The recommendations do not come with the same level of recommendations and some are likely to be required.
 Others are optional and may be followed by more advanced DROs.
-It is up to the DRO to determine their applicability. 
+It is up to the DRO to determine their applicability.
 
-Regarding recommendations on the behavior of the resolver, some recommendations may already be applied by default by the operated resolver software, in which case the DRO does not have to perform any action. 
-Some recommendations may require to be activated via configuration by the DRO.   
-Some recommendations may simply not be provided by the operated software, in which case we recommend the DRO to contact the software vendor for further discussion. 
+Regarding recommendations on the behavior of the resolver, some recommendations may already be applied by default by the operated resolver software, in which case the DRO does not have to perform any action.
+Some recommendations may require to be activated via configuration by the DRO.
+Some recommendations may simply not be provided by the operated software, in which case we recommend the DRO to contact the software vendor for further discussion.
 
 The recommendations are voluntary restrictive to prevent side effects of interventions that will be hard to predict, debug and understand.
 
@@ -238,7 +249,7 @@ The RECOMMENDATIONS in this document are subdivided into the following
 categories:
 
 Start-up recommendations (STARTUP):
-: which describes RECOMMENDED operations the DRO is expected to perform when the resolver is started. 
+: which describes RECOMMENDED operations the DRO is expected to perform when the resolver is started.
 These operations typically include health checks of the infrastructure the resolver is instantiated on as well as configuration check.
 
 Run time recommendations (RUNTIME):
@@ -246,27 +257,27 @@ Run time recommendations (RUNTIME):
 These operations typically include health checks of the infrastructure as well as the resolvers.
 
 On demand recommendations (ONDEMAND):
-: which describes the RECOMMENDED operations a DRO may perform. 
-This includes the ability to operate health checks at a given time as well as specific operations such as flushing the cache. 
+: which describes the RECOMMENDED operations a DRO may perform.
+This includes the ability to operate health checks at a given time as well as specific operations such as flushing the cache.
 The reason this document mentions these recommendations is to enable DROs to have the appropriates tools as well as to restrict their potential interventions.
 
 
 #  Time deviation and absence of Real Time Clock Recommendations
 
-With M2M communication some devices are not expected to embed Real Time Clock (Raspberry Pi is one example of such devices). 
+With M2M communication some devices are not expected to embed Real Time Clock (Raspberry Pi is one example of such devices).
 With Raspberry Pi for example, when these devices are re-plugged their time is reset to some initial values like (January 1, 1970 for example) until they get re synchronized  via NTP.
 Other devices that have clocks  may suffer from time deviation.
 These devices cannot rely on their time estimation to perform DNSSEC validation.
 
-Time synchronization may be performed manually, but for the sake of operations it is strongly RECOMMENDED to automate the time synchronization on each resolver. 
+Time synchronization may be performed manually, but for the sake of operations it is strongly RECOMMENDED to automate the time synchronization on each resolver.
 
 STARTUP:
 
-* A DRO MUST provide a mean to update the time without relying on DNSSEC when the DNSSEC validator is started. 
+* A DRO MUST provide a mean to update the time without relying on DNSSEC when the DNSSEC validator is started.
 The resolver MUST NOT start if the time synchronization does not succeed at start time.
 
 Note that updating time in order to be able to perform DNSSEC validation may become a form of a chicken and egg problem when the NTP server is designated by its FQDN.
-The update mechanism must consider the DNSSEC validator may not able to validate the DNSSEC queries.  
+The update mechanism must consider the DNSSEC validator may not able to validate the DNSSEC queries.
 In other words, the mechanisms may have to update the time over an unsecure DNSSEC resolution.
 
 RUNTIME:
@@ -290,7 +301,7 @@ Automatic management of the TA is RECOMMENDED and can be subdivided into the fol
 
 1. Initial TA provisioning:
 : that is the ability, for a DRO, to ensure a starting resolver is automatically provisioned with an up-to-date configuration.
-This includes defining a trust model and ensuring the associated TAs values are valid at the time the resolver is started. 
+This includes defining a trust model and ensuring the associated TAs values are valid at the time the resolver is started.
 # This includes the TA associated to the trust model established by the DRO.
 
 
@@ -308,7 +319,7 @@ This section is only considering TA and not NTA. The handling of NTA is detailed
 ## Trust Anchor Configuration {#boot}
 
 When a DRO starts a DNSSEC resolver, the DNSSEC resolver is provisioned with the TAs as part of its configuration.
-As these TAs change over time, the DRO MUST ensure the resolvers are always provisioned with up-to-date TAs and detect deprecated configuration. 
+As these TAs change over time, the DRO MUST ensure the resolvers are always provisioned with up-to-date TAs and detect deprecated configuration.
 
 To do so, the TA configuration is considered as a trusted model instantiated as follows:
 
@@ -316,20 +327,20 @@ To do so, the TA configuration is considered as a trusted model instantiated as 
 : The DRO defines the domain names that constitutes security entry point (TA) -- see {{trust-model-def}} for more details.
 
 2. Trust model bootstrapping:
-: A bootstrapping procedure is applied to each TA to retrieve their TA values - that is the corresponding value of the key - in a trusted way. 
+: A bootstrapping procedure is applied to each TA to retrieve their TA values - that is the corresponding value of the key - in a trusted way.
 Such TA MAY have a specific format not understood by the resolver -- see {{trust-model-boot}} for more details.
 
 3. DNSSEC resolver configuration generation:
 :  The TA with associated values are formatted appropriately for the DNSSEC resolver that will be instantiated. In many cases the appropriated format is the DNS RRset format - see {{conf}} for more details.
 
 4. DNSSEC resolver instantiation:
-: The DNSSEC resolver is started, performs some checks before becoming operational, that is checking compability between provisioned TAs and those found online. 
+: The DNSSEC resolver is started, performs some checks before becoming operational, that is checking compability between provisioned TAs and those found online.
 These checks are implemented by the resolver and not really in scope of the DRO -- see {{instantiation}} for more details.
 
 
-While these steps may require some specific development for complex trust models, no additional deployment is required when using the default model where the root zone is defined as the only secure entry point. 
-In such cases, the trusted model bootstrapping is performed by software-update that relies on the code signing key of the software provider. 
-The software provider also provides the configuration to the appropriated format and the checks at instantiation -- see {{iana-boot}}.  
+While these steps may require some specific development for complex trust models, no additional deployment is required when using the default model where the root zone is defined as the only secure entry point.
+In such cases, the trusted model bootstrapping is performed by software-update that relies on the code signing key of the software provider.
+The software provider also provides the configuration to the appropriated format and the checks at instantiation -- see {{iana-boot}}.
 
 ### Definition of the Trust model {#trust-model-def}
 
@@ -354,18 +365,18 @@ However, the trust model MUST at least ensure that any domain name in the DNS be
 As the number of top level domains is evolving overtime, it remains safe to keep the root zone as a security entry point in order to cover the full domain name space.
 
 The default trust model remains rooted in the root zone as a security entry point, and no zones being considered as unsecured.
-By default, the instantiation of this trusted model is delegated by the DRO to the software vendor that is responsible to update the the default trust model with the up-to-date value of the TA. 
-In such cases, the trusted model is implemented by software-update that relies on the code signing key of the software provider. 
+By default, the instantiation of this trusted model is delegated by the DRO to the software vendor that is responsible to update the the default trust model with the up-to-date value of the TA.
+In such cases, the trusted model is implemented by software-update that relies on the code signing key of the software provider.
 
-The use of a different trust model must be carefully considered and NOT RECOMMENDED for DRO without a strong DNSSEC expertise.  
+The use of a different trust model must be carefully considered and NOT RECOMMENDED for DRO without a strong DNSSEC expertise.
 A DRO implementing another trust model MUST be able to ensure that the trust model is properly implemented - that is with up-to-date TAs.
-The DRO MUST carefully balance the implications, the risks, the necessary involved mechanisms to achieve this goal with the potential benfits. 
-More specifically, it is expected updating the trust model's instantiation is performed in an automated way with strong validation validation and checks being put in place. 
-It is also likely that the DRO and the owner of the TA will have a specific relationship and TA update will be provided via a specific out-of-band channel. 
+The DRO MUST carefully balance the implications, the risks, the necessary involved mechanisms to achieve this goal with the potential benfits.
+More specifically, it is expected updating the trust model's instantiation is performed in an automated way with strong validation validation and checks being put in place.
+It is also likely that the DRO and the owner of the TA will have a specific relationship and TA update will be provided via a specific out-of-band channel.
 More specifically, {{!RFC5011}} that we recommend to update TA by a running instance of resolver, is likely not to be sufficent, as it is completly automated and relies on in band signaling which comes with risks detailled in {{!RFC5011, Section 8}}.
-A DRO need to understand these risks. 
+A DRO need to understand these risks.
 Note also that even when {{!RFC5011}} the owner of the TA needs to respect the {{!RFC5011}} timings -- see {{automated-update-ta}}.
-   
+
 
 ### Trust Model Bootstrapping {#trust-model-boot}
 
@@ -399,7 +410,7 @@ Trust anchor management ought to recognize that the majority of operators deploy
 Trust anchor management needs to recognize that there may be other trust anchors of interest to operators.
 Besides deployments in networks other than the global public Internet (hence a different root), operators may want to configure other trust points.
 
-The IANA managed root zone KSK is managed and published as described in "DNSSEC Trust Anchor Publication for the Root Zone" {{?RFC7598}}.
+The IANA managed root zone KSK is managed and published as described in "DNSSEC Trust Anchor Publication for the Root Zone" {{?RFC7958}}.
 That document is written as specific to that trust point.
 Other trust points may adopt the technique describe (or may use other approaches).
 
@@ -421,18 +432,18 @@ STARTUP:
 
 * DNS resolver MUST validate the TA before starting the DNSSEC resolver, and a failure of TA validity check MUST prevent the DNSSEC resolver to be started. Validation of the TA includes coherence between out-out band values, values stored in the DNS as well as corresponding DS RRsets.
 
-## Trust Anchor Update 
+## Trust Anchor Update
 
 Updating the TA reflects the evolution of the trust.
 It is important to understand that this section does not consider the trust model to be updated by the DRO.
 This has been defined in section {{boot}}.
 Instead, it considers the evolution over time of the instantiation of the trust model, that is the update of the values associated to the TA, by a running instance of resolver.
 Such updates need to be operated in a reliable and trusted way.
-Note that you may not need to proceed to such TA update if the DRO can guarantee that any instance has been instantiated with a configuration the reflects the current value of the TAs. 
+Note that you may not need to proceed to such TA update if the DRO can guarantee that any instance has been instantiated with a configuration the reflects the current value of the TAs.
 Given that the roll-over phases for a TA update are relatively long, for DRO that can ensure a fast deployment of the latest release of resolver, with the defult trust model being implemented by the software vendor, TA update is likely to be achieved via software updates.
 
 The remaining of this section is left to DRO willing to ensure their instance have the capacity to update their TAs while running.
-This may be a specific feature or a complementary feature to software update. 
+This may be a specific feature or a complementary feature to software update.
 The value associated to the TA may be updated over time which is part of the maintenance of the configuration and needs to be performed by the DNSSEC resolver without any intervention of the DRO. This is the purpose of this section.
 
 TA update is expected to be transparent to the DRO (see {{automated-update-ta}}.
@@ -454,8 +465,8 @@ STARTUP:
 * DRO SHOULD enable "Automated Updates to DNSSEC Trust Anchors" {{!RFC5011}} {{?I-D.ietf-dnsop-rfc5011-security-considerations}}.
 
 
-Note that while automation prevents the risks associated to manual intervention, but managing TA on its own - that is via other means than software updates, does not come without any risks. 
-A DRO need to understand these risks.   
+Note that while automation prevents the risks associated to manual intervention, but managing TA on its own - that is via other means than software updates, does not come without any risks.
+A DRO need to understand these risks.
 
 ### Automated Trust Anchor Check {#automated-ta-check}
 
@@ -495,7 +506,7 @@ The DRO MUST restart the resolver with updated TA.
 
 ONDEMAND:
 
-* A DRO SHOULD be able to check the status of a TA as defined in Section 3 of {{!RFC7583}}. 
+* A DRO SHOULD be able to check the status of a TA as defined in Section 3 of {{!RFC7583}}.
 
 # Negative Trust Anchors Related Recommendations {#nta}
 
@@ -505,7 +516,7 @@ NTA represents the only permitted intervention in the resolving process for a DR
 
 NTA are considered as temporary fix for a known unsecured domain, which is different from an TA that would not be trusted.
 The designation of NTA might be misleading, but NTA are not expected to be part of the trust model.
-This does not prevent a DRO to provision NTA as a configuration parameters NTA. 
+This does not prevent a DRO to provision NTA as a configuration parameters NTA.
 The management of the configuration SHOULD be automated as described in {{boot}}.
 
 Handling NTA is described in {{!RFC7646}} and a DRO SHOULD follow these guidelines. The intent of this section is to position these guidelines toward the operational recommendations provided in this document.
@@ -520,7 +531,7 @@ ONDEMAND:
 
 * DRO SHOULD be able to handle NTA as defined in {{!RFC7646}}.
 
-Note that adding a Negative Trust Anchor only requires the domain name to be specified. 
+Note that adding a Negative Trust Anchor only requires the domain name to be specified.
 Note also that NTA can disable any sort of DNSKEY and is not restricted to TA.
 
 A failure in signaling validation is associated to a mismatch between the key and the signature.
@@ -534,7 +545,7 @@ following recommendations:
 
 RUNTIME:
 
-* DRO SHOULD monitor the number of signature failure associated to each DNSKEY. 
+* DRO SHOULD monitor the number of signature failure associated to each DNSKEY.
 These number are only hints and MUST NOT trigger automated insertion of NTA.
 
 * A DRO MAY collect additional information associated each DNSKEY RRSets.
@@ -551,7 +562,7 @@ However, such incoherence primary results from error in the management of the au
 As a result, it is not expected that the DNSSEC validator provides complex management facilities to address these issues as this will modify the DNS architecture and add complexity that is not proved to be beneficial.
 As a result, recommendations always belong to the run time or on demand recommendations.
 The main difference between TA and KSK/ZSK is that the DRO does not necessarily have an out of band mechanism to retrieve the RRsets.
-As a result, the DRO has less information to determine and confirm what is happening. 
+As a result, the DRO has less information to determine and confirm what is happening.
 The default recommendation is to let things go.
 
 A number of reasons may result in inconsistencies between the RRsets stored in the cache and those published by the authoritative server.
@@ -574,7 +585,7 @@ Note also that inconsistencies between the ZSK / KSK stored in the cache and tho
 
 Typically, a request for the KSK / ZSK may have been provided by a cache that is storing the new published value, while the data and associated signatures may be associated to the old KSK / ZSK.
 
-Incoherence between RRsets and DNSKEYs is not the responsibility of the DRO. 
+Incoherence between RRsets and DNSKEYs is not the responsibility of the DRO.
 Instead, it is the responsibility of authoritative server publishing these data.
 This includes insuring the coherence between TTLs and signature validation periods as well as small variations of the resolvers clocks.
 Section 4.4.1 of {{!RFC6781}} provides some recommendations that can be implemented by the authoritative server which puts the responsibility of failure of signature validation under the responsibility of the authoritative server.
@@ -613,7 +624,7 @@ RUNNING:
 
 ## Interactions with the cached RRsets
 
-The purpose of automated checks is to enable early detection of failed operations, which provides enough time to the DRO to react without any consequences. 
+The purpose of automated checks is to enable early detection of failed operations, which provides enough time to the DRO to react without any consequences.
 On the other hand, these checks MAY reveal as well that a rogue TA has been placed and that the resolver is corrupted.
 Similarly, a DRO may be informed by other channel a rogue or unwilling DNSKEY has been emitted.
 
@@ -637,15 +648,15 @@ The implementation of such guidance is ensured by the software vendors and the c
 To safely deprecate one signature scheme, the DNSSEC validator operator is expected to follow the recommendation below:
 
 STARTUP:
-* DRO MUST ensure recent software releases that comply with the most recent cryptographic guidances are being used 
+* DRO MUST ensure recent software releases that comply with the most recent cryptographic guidances are being used
 
 RUNTIME:
 
 * A DRO SHOULD regularly request and monitor the signature scheme supported by  an authoritative server.
 * A DRO SHOULD report a "Unsupported DNSKEY Algorithm" as defined in {{!RFC8914}}  when a deprecated algorithm is used for validation.
- 
-One inconvenient to such strategy i sthat it does not let one DRO to take advantage of more recent cryptographic. 
-While currently not being widely used, a DRO MAY share information with authoritative server in the hope that future deployment of authoritative servers will be able to leverage it.  
+
+One inconvenient to such strategy i sthat it does not let one DRO to take advantage of more recent cryptographic.
+While currently not being widely used, a DRO MAY share information with authoritative server in the hope that future deployment of authoritative servers will be able to leverage it.
 {{!RFC6975}} provides the ability for a DNSSEC validator to announce an authoritative server the supported signature schemes.
 However, a DNSSEC validator is not able to determine other than by requesting and monitoring DNSKEY RRsets as well as RRSIG.
 These RRsets are received by enabling DNSSEC validation by default which is obviously the case for DNSSEC validator.
@@ -702,16 +713,16 @@ There are no IANA consideration for this document.
 The recommendations listed in this document have two goals.
 First ensuring the DNSSEC validator has appropriated information to appropriately perform DNSSEC validation.
 Second, monitoring the necessary elements that would enable a DNSSEC validator operator to ease a potential analysis.
-The recommendations provide very limited ability for a DNSSEC validator operator to alter or directly interfere on the validation process and the main purpose in providing the recommendations was to let the protocol run as much as possible. 
+The recommendations provide very limited ability for a DNSSEC validator operator to alter or directly interfere on the validation process and the main purpose in providing the recommendations was to let the protocol run as much as possible.
 Providing inappropriate information can lead to misconfiguring the DNSSEC validator, and thus disrupting the DNSSEC resolution service.
-As a result, enabling the setting of configuration parameters by a third party may open a wide surface of attacks. 
+As a result, enabling the setting of configuration parameters by a third party may open a wide surface of attacks.
 In addition, such changes may lead to unexpected corner cases that would result in making analysis and trouble shooting very hard.
 
 As an appropriate time value is necessary to perform signature check, an attacker may provide rogue time value to prevent the DNSSEC validator to check signatures.
 
-An attacker may also affect the resolution service by regularly asking the DNSSEC validator to flush the KSK/ZSK from its cache.  
-All associated data will also be flushed. 
-This generates additional DNSSEC resolution and additional validations, as RRSet that were cached require a DNSSEC resolution over the Internet. 
+An attacker may also affect the resolution service by regularly asking the DNSSEC validator to flush the KSK/ZSK from its cache.
+All associated data will also be flushed.
+This generates additional DNSSEC resolution and additional validations, as RRSet that were cached require a DNSSEC resolution over the Internet.
 This affects the resolution service by slowing down responses, and increases the load on the DNSSEC validator.
 
 An attacker may ask the DNSSEC validator to consider a rogue KSK/ZSK, thus hijacking the DNS zone. Similarly, an attacker may inform the DNSSEC validator not to trust a given KSK in order to prevent DNSSEC validation to be performed.
@@ -724,14 +735,10 @@ As a result, information considered by the DNSSEC validator should be from a tru
 The software used for DNSSEC validator is not immune to bugs and may become vulnerable independently of how it is operated.
 As a result a DRO SHOULD NOT depend on a single implementation or version of a given software and SHOULD instead run at least two independent pieces of software.
 
-# Contributors
-
-We would like to thank very much Edward Lewis without who the document might probably not exist.
-
 # Acknowledgment
 
 The need to address DNSSEC issues on the resolver occured during multiple discussions   including among others Ted Lemon, Ralph Weber,
 Normen Kowalewski, Mikael Abrahamsson, Jim Gettys, Paul Wouters, Joe Abley, Michael Richardson, Vladimír Čunát, James Gannon, Andrew McConachie, Peter Thomassen, Florian Obser and Brian Dickson.
 
-We also appreciated the support of the DNSOP chairs Tim Wicinski, Suzanne Woolf and Benno Overeinder. 
+We also appreciated the support of the DNSOP chairs Tim Wicinski, Suzanne Woolf and Benno Overeinder.
 
