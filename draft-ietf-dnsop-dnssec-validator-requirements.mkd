@@ -47,7 +47,7 @@ author:
       -
         ins: D. York
         name: Dan York
-        org: ISOC
+        org: Internet Society
         street:
         -
         city:
