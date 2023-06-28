@@ -326,22 +326,20 @@ Validators also need to ensure TCP works if it is needed, for the same situation
 
 # Secure Transport Recommendations
 
-While the use of a secure transport is complementary to DNSSEC, a DRO should consider secure transport carefully firstly as a complementary element of its trust model and secondary as the discovery of DNS resolver using a secure transport may require some interactions with the DNS resolver. 
+A DRO should consider secure transport as a complementary element of its trust model.
+Such resolvers are usually designated as encrypted resolvers and their presence is usually discovered by the DNS client via a discovery mechanisms.
+That discovery mechanism may require the resolver to respond to specific DNS requests. 
  
 In many cases, a DRO enables DNSSEC to ensure the cached RRset have not been modified on-path and corresponds to those published by the owner of the zone.
-In many deployment, a secure transport such as DNS over TLS (DoT) {{!RFC7858}}, DNS over HTTPS {{!RFC8484}} (DoH) or DNS over QUIC (DoQ) {{!RFC9250}} ensures the RRsets ensures the RRSets are protected against on-path modification from the resolver to the stub resolver.
-While the use of secure transport is complementary to DNSSEC, a DRO that improves the security of the resolution with DNSSEC should also consider the use of a secure transport. 
-These interfaces may be supported by the running resolver software or via a front end and TLS must follow their own recommendations {{!RFC9325}}. 
-
-
-With the standard DNSSEC resolver, a device only needs to be given an IP address of the local resolver usually with a DHCP DNS Recursive Name Server option {{?RFC3646}} or specific provisioning mechanism such as 3GPP TS 24.008.
-With secure transport, the device needs to be informed of the presence of a given flavor as well as additional information - IP address, port, URI template for example.
-These information can be provisioned by the network to the device using DHCP and Router Advertisement Options for the Discovery of Network-designated Resolvers {{!I-D.ietf-add-dnr}} or  3GPP TS 24.008 mechanisms.
-One advantage of such  mechanisms is that these do not impact the DNSSEC resolving service. However, the network as well as the device (OS) needs to support these mechanisms.   
-
-Alternatively, an application provisioned with the IP address of the UDP or TCP resolver may proceed to the Discovery of Designated Resolvers (DDR) {{!I-D.ietf-add-ddr}} and discover the available resolving service with a secure transport. It is important the device is able to be given some confidence these resolving service are associated to the resolver over UDP and TCP.
-The DDR is based on the issuance of a certificate with the IP address of the UDP or TCP DNS resolvers, so the DRO should strongly consider using a public IP address for its UDP or TCP DNS resolvers.
-It is also strongly recommended that the DRO uses a Certificate Authority that is trusted by the Web PKI, so the application can validate the certificat eof the resolver.    
+To ensure RRsets are protected against on-path modification from the resolver to the DNS client, the DRO may enable a secure transport such as DNS over TLS (DoT) {{!RFC7858}}, DNS over HTTPS {{!RFC8484}} (DoH) or DNS over QUIC (DoQ) {{!RFC9250}}.
+The TLS termination may be supported by the running resolver software or via a TLS front end and TLS should follow its own TLS recommendations {{!RFC9325}}. 
+ 
+A DRO should consider how the DNS client will discover the encrypted resolver. 
+A DNS client may be provisioned with all the necessary parameters via specific mechanisms such as  DHCP and Router Advertisement Options for the Discovery of Network-designated Resolvers {{!I-D.ietf-add-dnr}} or 3GPP TS 24.008 mechanisms.
+Alternatively, a DNS client configured with an unencrypted resolver may discover the encrypted resolvers operated by the same entity as the unencrypted resolver using the Discovery of Designated Resolvers (DDR) {{!I-D.ietf-add-ddr}}. 
+The relation between the unencrypted resolver and the encrypted resolvers is indicated during the TLS key exchange via a certificate that contains a subjectAltName extension with the IP address of the unencrypted resolver.
+To ease the (even future) deployment of DDR, it is recommended that a DRO uses a global IP address for its unencrypted resolver. 
+When the DRO deploys encrypted resolvers, it is recommended that the DRO enables DNS clients to discover the encrypted resolvers using DDR and use a certificate authority that belongs to the Web PKI. 
 
 # IANA Considerations
 
@@ -354,43 +352,45 @@ However, most DNSSEC operations are performed by the owner of the zone as oppose
 In addition, DRO are largely relying on the software vendor as well as automated procedure as to limit potential intervention from the DRO.
 This section emphases on DRO related security considerations. 
 
-Time inaccuracy. A RRSIG is only valid between the inception and expiration time. As a result, when the time is outside this period validation is disabled, and this could be used by an attacker to disable validation and for example poison the cache.
+Regarding time inaccuracy, a RRSIG is only valid between the inception and expiration time. As a result, when the time is outside this period validation is disabled, and this could be used by an attacker to disable validation for example to poison the cache.
 
 Trust anchors are the root of the trust in DNSSEC and potentially, an attacker being able to provide a rogue trust anchor is potentially able to hijack any RRset below that Trust Anchor. On the other hand, mishandling Trust Anchor is likely resulting in a validator unable to validate most of the traffic under the TA.
-The use of a common trust model shared by many DRO and implemented by multiple vendors reduces these risks. 
+The use by a DRO of a common trust model shared by many DRO and implemented by multiple vendors reduces these risks. 
 
-Negative Trust Anchor by definition disable validation, and as such must be handled very cautiously by the DRO. This could be used by an attacker for example to poison a resolver. 
+Negative trust anchors by definition disable validation, and as such must be handled very cautiously by the DRO. This could be used by an attacker, for example, to disable validation and poison the resolver. 
 
 Using weak cryptography reduces the strength in the trust implemented by DNSSEC as it relied on cryptographic signatures. A weak cryptographic algorithm may be used by an attacker to forge a signature. It is probably something the DRO may observe as use as an indicator, but there is little action the DRO can actually do, as the cryptographic algorithms to be used are defined by the owner of the zone or the RRSet.    
 
-The DRO is operating one part of the DNS system. While a DRO operates independently, it is believed that communication between the different actor involved in the DNS system will enhance the global resiliency of the system.
-As a result, we encourage the DRO to provides some information to the stub client when a signature validation fails. We also encourage the DRO to authorize third party to request what Trust Anchor or more generally DNSKEY are being used, so concerned party may be able to contact the DRO in case of emergency. This is expected, for example when a authoritative server is performing a key roll over to check the update has been performed properly before removing the old key. 
+The DRO is operating one part of the DNS system. While a DRO operates independently, it is believed that communication between the different actors involved in the DNS system will enhance the global resiliency of the system.
+As a result, this document encourages the DRO to provides some information to the stub client when a signature validation fails.
+It also encourages the DRO to authorize third parties to request what trust anchor or more generally DNSKEY are being used, so concerned party may be able to contact the DRO if needed.
+This is expected, for example when a authoritative server is performing a key roll over to check the update has been performed properly before removing the old key. 
 The same considerations for communications also holds between DRO as well as with software vendors. 
 
 As the software used for the DNSSEC validator is not immune to bugs {{ENT}} and may become vulnerable independently of how it is operated, it is recommended a DRO relies on different vendors.
 
 ## DNSSEC and TLS Trust Models
 
-While the document is essentially focused on the security implemented by DNSSEC, it also mention the combination of TLS and DNSSEC. 
+While the document is essentially focused on the security implemented by DNSSEC, it also mentions the combination of TLS and DNSSEC. 
 DNSSEC is essentially a protocol focused on authenticating the DNS data, but is not addressing confidentiality of the data nor the privacy of the user requesting that data.
-TLS is providing authentication and confidentiality of a communication. 
+TLS provides authentication and confidentiality of a communication. 
 
 As a result, TLS is necessary wherever privacy is needed.
-In the current model a stub DNS client is using TLS to protect the communication with the resolver.
-If that resolver is trusted and believed to host trustworthy RRsets - that is unmodified RRsets validated by the DNSSEC - the stub client does not need to re-check the provided RRsets with DNSSEC. 
-In that case, TLS ensures the transmission of trustworthy RRsets from teh trusted resolver to the stub client.    
-On the other hand, if the stub client does not fully trust the resolver, than the stub client must authenticate the received RRsets with DNSSEC.
+In the current model a DNS client is using TLS to protect the communication with the resolver.
+If that resolver is trusted and believed to host trustworthy RRsets - that is unmodified RRsets validated by the DNSSEC - the TLS communication enables the DNS client to trust the RRSets without performing a DNSSEC validation.
+If that resolver is expected to perform some operations agreed by the DNS client that may change the RRsets, DNSSEC cannot be performed by the DNS client and TLS is used to carried these trusted RRsets to the DNS client.  
+On the other hand, if the DNS client does not fully trust the resolver, than the DNS client must authenticate the received RRsets with DNSSEC.
 In that case, TLS is only providing privacy protection. 
 
 The trust in a DNS resolver depends on multiple factors, but one significant concern is the ability of the DRO to perform a man in the middle attack and change on the fly the RRsets without the stub client being aware of it. 
-Confidential computing {{?I-D.arkko-dns-confidential}} or oblivious DNS {{?RFC9230}} are means to address such issues.
+Confidential computing {{?I-D.arkko-dns-confidential}} may be one way to address such attacks.
+Another concern, related to privacy, is the ability of a resolver to track a certain user and log every sites requested by the user. Confidential Computing {{?I-D.arkko-dns-confidential}} or oblivious DNS {{?RFC9230}} are means to address such issues.
 
-A model where TLS would be used to protect the transactions between the stub client and the authoritative server is unlikely in a near future for scalability reasons.
+A model where TLS would be used to protect the transactions between the DNS client and the authoritative server is unlikely in a near future for scalability reasons.
 A compromise to this model may consists in having the TLS communications between the resolvers and the authoritative servers.
-In such scenario, the privacy requirement might be questionable as the resolver aggregates the traffic of multiple stub client which may be considered to provide sufficient privacy.
-Instead, TLS would be used to extend the trust communication between the stib client an dthe resolver to the authoritative server.
-This would result in establishing a secure communication between multiple trusted nodes - the stub client, the resolver and the authoritative server.     
-Of course, it is unlikely to have all these intermediary nodes trusted, in which case trust will rely on DNSSEC. 
+In such scenario, the privacy requirement might be questionable as the resolver aggregates the traffic of multiple DNS clients which may be considered to provide sufficient privacy.
+However, a model involving a communication composed of multiple TLS segments is only trusted if all involved nodes are trusted (DNS client, resolver, authoritative server).
+In practice, it is unlikely to have all these intermediary nodes trusted, in which case trust will rely on DNSSEC. 
 
 
 # Acknowledgment
