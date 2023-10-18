@@ -3,13 +3,12 @@
 title: Recommendations for DNSSEC Resolvers Operators
 abbrev: DNSSEC Resolver Operator Recommendations
 docname: draft-ietf-dnsop-dnssec-validator-requirements-07
-submissionType: ISE
+submissionType: independent
 
 ipr: trust200902
-area: operational
-wg: dnsop
 kw: Internet-Draft
 cat: info
+wg: Internet Engineering Task Force
 
 pi:
   rfcedstyle: yes
@@ -83,8 +82,9 @@ informative:
 The DNS Security Extensions (DNSSEC) defines a process for validating received
 data and assert them authentic and complete as opposed to forged.
 
-While DNSSEC comes with some complexity - at least for non expert -, that complexity is mostly abstract by the DNSSEC resolver. As result, running a resolver with DNSSEC enabled requires little DNSSEC expertise an can be operated by following a very limited set of recommendations. 
-This document provides the main recommendations that need to be considered when a DNSSEC resolution is enabled. 
+While DNSSEC comes with some complexity, at least for non expert, that complexity is mostly abstracted by the resolver.
+As result, running a resolver with DNSSEC enabled only requires the operator to only follow a very limited set of recommendations. 
+This document provides such recommendations.
  
 --- middle
 
@@ -105,7 +105,7 @@ A well-written DNSSEC validating resolver will faithfully implement the DNSSEC p
 
 The items that an operator needs to attend to are:
 
-* Time of day
+* Absolute time 
 * Trust anchors (positive and negative)
 * Monitoring of the service, including abuse
 
@@ -120,17 +120,19 @@ The recommendations will focus on preparation of the elements of a DNSSEC valida
 
 The purpose of a DNS resolver is to perform DNS resolutions on behalf of DNS client.
 A DNS resolution MAY involve DNS exchanges with multiple authoritative DNS servers. In addition, a resolver also caches the responses it receives and so only performs the DNS resolution over the Internet when necessary.
-With DNSSEC enabled, the response returned by the resolver is trustworthy.   
+With DNSSEC enabled, the resolver provides data origin authentication and data integrity, and so ensure the response returned by the resolver is trustworthy.   
 
 {fig-dns-res} illustrates the case with the resolution of the FQDN www.example.com.
-The DNS client sends a DNS request for the IP address of www.example.com and sends such request to the resolver (1). 
-Upon receiving such request, the resolver performs the resolution if the response is not in its cache. In our example, the resolver already knows the authoritative server of www.example.com, and so only sends a request to that authoritative server (2).
-In our case, we assume the client has not explicitly requested the resolver to disable the DNSSEC validation. The DNS client may be DNSSEC aware or not, but the resolver performs the DNSSEC validation. 
-When the resolver sends the DNS request to the authoritative server of example.com, it indicates the authoritative it supports DNSSEC. In that case, if the zone example.com is signed, the authoritative server includes the necessary sets that will enable the resolver to cryptographically validate the response (3).
+The DNS client sends a DNS request for the IP address of www.example.com to the resolver (1). 
+If the response is not in the cache of the resolver, then if proceeds to the resolution.
+In our example, the resolver already knows the authoritative server of www.example.com, and so only sends a request to that authoritative server (2).
+We assume the client has not explicitly requested the resolver to disable the DNSSEC validation. The DNS client may be DNSSEC aware or not, but the resolver performs the DNSSEC validation. 
+When the resolver sends the DNS request to the authoritative server of example.com (2), it indicates the support of DNSSEC. In that case, if the zone example.com is signed, the authoritative server includes the necessary sets for the resolver to cryptographicall y validate the response (3).
 The resolver validates the response and returns the IP address to the client (4). Depending on the client's request, the server may indicate that the information is trustworthy or include the DNSSEC information so the client can re-validate the response.        
 If the resolver is unable to validate the information an error is returned to the client (4). 
 
 ~~~
+                             <--------- Internet ---------------->          
                                                    Authoritative
            www.example.                            Server 
 +--------+ com AAAA?    +-----------+              +-------------+
@@ -222,7 +224,7 @@ This covers the proper implementation and operation of DNS and DNSSEC message ex
 
 # Time Recommendations
 
-As DNSSEC uses clock time to temporally limit the validity of RRSIG resource records, a DNSSEC validator needs a reliable time source. If a validator can be fooled into believing that the time is a point well into the past, an incorrect RRSIG resource record may be replayed and used, or an old key whose private component has since been exposed may be able to forge a falsified answer.
+As DNSSEC uses absolute time to temporally limit the validity of RRSIG resource records, a DNSSEC validator needs a reliable time source. If a validator can be fooled into believing that the time is a point well into the past, an incorrect RRSIG resource record may be replayed and used, or an old key whose private component has since been exposed may be able to forge a falsified answer.
 
 The range of these recommendations include devices that do not have an embedded Real Time Clock. Such devices need to have their system clocks updated upon power up before starting the DNSSEC validator.
 
@@ -261,7 +263,7 @@ The TA health check should associate a status to the TA - as defined in Section 
 When an unexpected (old) TA is found, the health check should evaluate if the mismatch resulted from an ongoing normal roll over, a potential emergency key roll over, failed roll over or any other envisioned cases.
 In any case restarting the resolver is expected to address any situation that cannot be addressed otherwise, which reinforces the recommendation to rely on TA bootstrapping mechanisms.
 
-Note also that {{!RFC8145}} also enables any authoritative server to check how the TA roll over is performed. Such cooperation is expected to be useful and benefit the overall operation of the DNS system. In this case, the owner of the TA is able to check whether its key roll over is being performed appropriately, and if not, it may cancel it for further analysis. 
+Note also that {{!RFC8145}} also enables to check how the TA roll over is performed. Such cooperation is expected to be useful and benefit the overall operation of the DNS system. The owner of the TA is able to check whether its key roll over is being performed appropriately, and if not, it may cancel it for further analysis. 
 
 
 # Negative Trust Anchors Related Recommendations {#nta}
