@@ -68,10 +68,24 @@ informative:
     title: ENT was here !!!
   ta-fetcher:
     author:
-      name: Jakob Schlyter and Kim Davies
+      name: Jakob Schlyter, Kim Davies
     target: https://github.com/iana-org/get-trust-anchor
     title: DNSSEC Trust Anchor Fetcher
-
+  TNL:
+    author: 
+      name: Marco Davis, Cristian Hesselman
+    target: https://www.sidnlabs.nl/en/news-and-blogs/timenl-comes-of-age
+    title: TimeNl comes of age
+  TimeNL:
+    author: 
+    target: https://time.nl/index_en.html
+    title: TimeNL Public NTP service
+  NTPPool:
+    author: 
+    target: https://www.ntppool.org/en/use.html
+    title: The NTP Pool Project
+  
+  
 
 
 
@@ -228,9 +242,9 @@ As DNSSEC uses absolute time to temporally limit the validity of RRSIG resource 
 
 The range of these recommendations include devices that do not have an embedded Real Time Clock. Such devices need to have their system clocks updated upon power up before starting the DNSSEC validator.
 
-At initialization: a DNSSEC validator needs to be able to establish reliable time without relying on DNSSEC validation. The latter clause is needed as the initialization step is being carried out to start DNSSEC validation, it is not assumed to be up and running at this point. One way to interpret this is that a time source (Network Time Protocol) ought to be identified by a numerical IP address and not a fully qualified domain name (which would require a DNS lookup).
+At initialization: a DNSSEC validator needs to be able to establish reliable time without relying on DNSSEC validation. The latter clause is needed as the initialization step is being carried out to start DNSSEC validation, it is not assumed to be up and running at this point. One way to interpret this is that a time source (Network Time Protocol) ought to be identified by a numerical IP address and not a fully qualified domain name (which would require a DNS lookup). An operator may set its own time as for example described in {{TNL}} or rely on an external Time provider. In any case the system time should be retrieved from an authenticated source using Network Security Time (NST) {{!RFC8915}}. However NST is based on TLS and as such the verification of a signature which requires an appropriated time to be be set to ensure the certificate is valid. To get a system time that enables the establishment of a TLS session, the operator may rely primarily on manual configuration or an unauthenticated NTP sucg as pool.ntp.org {{NTPPool}} or {{TimeNL}}. Once that system time is set, the system time should confirm the time over a trusted source, i.e. using NST.     
 
-During runtime: a DNSSEC validator operator ought to have controls in place to monitor the current time of a validator as well as monitor the number of validation failures that can be attributed to temporal violations. Updates to the current time ought to make use of secure environments, whether secure channels for NTP or as appropriate for the installation. Updates ought to be part of an automated process, running at appropriately frequent intervals.
+During runtime: a DNSSEC validator operator ought to have controls in place to monitor the current time of a validator as well as monitor the number of validation failures that can be attributed to temporal violations. Updates to the current time ought to make use of secure environments, whether secure channels for NTP or as appropriate for the installation. Updates ought to be part of an automated process, running at appropriately frequent intervals -- see {{TimeNL}}.
 
 Upon demand: a DNSSEC validator operator ought to be able to perform any of the runtime actions upon demand, for instance, to help diagnose a service failure.
 
@@ -348,13 +362,15 @@ Validators also need to ensure TCP works if it is needed, for the same situation
 
 # Secure Transport Recommendations
 
-A DRO should consider secure transport as a complementary element of its trust model. Such resolvers are usually designated as encrypted resolvers and their presence is usually discovered by the DNS client via a discovery mechanisms. That discovery mechanism may require the resolver to respond to specific DNS requests.
+An operator should consider secure transport as a complementary element of its trust model. Such resolvers are usually designated as encrypted resolvers and their presence is usually discovered by the DNS client via a discovery mechanisms. That discovery mechanism may require the resolver to respond to specific DNS requests.
 
-In many cases, a DRO enables DNSSEC to ensure the cached RRset have not been modified on-path and corresponds to those published by the owner of the zone. To ensure RRsets are protected against on-path modification from the resolver to the DNS client, the DRO may enable a secure transport such as DNS over TLS (DoT) {{!RFC7858}}, DNS over HTTPS {{!RFC8484}} (DoH) or DNS over QUIC (DoQ) {{!RFC9250}}. The TLS termination may be supported by the running resolver software or via a TLS front end and TLS should follow its own TLS recommendations {{!RFC9325}}.
+In many cases, anoperator enables DNSSEC to ensure the cached RRset have not been modified on-path and corresponds to those published by the owner of the zone. To ensure RRsets are protected against on-path modification from the resolver to the DNS client, the DRO may enable a secure transport such as DNS over TLS (DoT) {{!RFC7858}}, DNS over HTTPS {{!RFC8484}} (DoH) or DNS over QUIC (DoQ) {{!RFC9250}}. The TLS termination may be supported by the running resolver software or via a TLS front end and TLS should follow its own TLS recommendations {{!RFC9325}}.
 
-A DRO should consider how the DNS client will discover the encrypted resolver. A DNS client may be provisioned with all the necessary parameters via specific mechanisms such as DHCP and Router Advertisement Options for the Discovery of Network-designated Resolvers {{!I-D.ietf-add-dnr}} or 3GPP TS 24.008 mechanisms. Alternatively, a DNS client configured with an unencrypted resolver may discover the encrypted resolvers operated by the same entity as the unencrypted resolver using the Discovery of Designated Resolvers (DDR) {{!I-D.ietf-add-ddr}}. The relation between the unencrypted resolver and the encrypted resolvers is indicated during the TLS key exchange via a certificate that contains a subjectAltName extension with the IP address of the unencrypted resolver. To ease the (even future) deployment of DDR, it is recommended that a DRO uses a global IP address for its unencrypted resolver. When the DRO deploys encrypted resolvers, it is recommended that the DRO enables DNS clients to discover the encrypted resolvers using DDR and use a certificate authority that belongs to the Web PKI.
+When an operator sets a resolver over a secure transport, this resolver does not operates anymore on port 53 and an operator may wonder how DNS client will be able to discover that new service and more importantly if there are implications on its operations.  
+A DNS operator should consider how the DNS client will discover the encrypted resolver. In many cases, the DNS client are able to discover the encrypted resolver using {{!I-D.ietf-add-ddr}} in which case, the resolver needs to be configured to respond to special requests. It is also possible to provision directly the DNS client with the encrypted resolver via specific mechanisms such as DHCP and Router Advertisement Options for the Discovery of Network-designated Resolvers {{!I-D.ietf-add-dnr}} or 3GPP TS 24.008 mechanisms.  
 
-# Clarification over the DNSSEC and and the TLS Trust Models
+
+# Clarification over the DNSSEC and the TLS Trust Models
 
 While the document is essentially focused on the security implemented by DNSSEC, it also mentions the combination of TLS and DNSSEC. DNSSEC is essentially a protocol focused on authenticating the DNS data, but is not addressing confidentiality of the data nor the privacy of the user requesting that data. TLS provides authentication and confidentiality of a communication.
 
